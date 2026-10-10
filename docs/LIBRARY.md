@@ -74,7 +74,7 @@ Trashing an in-use item warns with its usages. Deleting the item removes its pla
 All screens are Flatpack ViewComponents.
 
 - Library page: list and grid, mountable, `library_path_for(parent_or_library)`.
-- Multi-select picker with search and type filter. Works standalone and as a Flatpack navigable modal (`flat_pack_modal_screen`, `data-fp-nav`).
+- Multi-select picker with search and type filter. Works standalone and as a Flatpack navigable modal (`flat_pack_modal_screen`, `data-fp-nav`). Hosts must pin `@hotwired/turbo-rails` so the modal's turbo-frame can load.
 - Placements editor: Orderable list plus remove. Add opens the picker in a navigable modal.
 
 Staff admin UI belongs in Recording Studio Admin, not here.

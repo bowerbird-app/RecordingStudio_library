@@ -157,6 +157,7 @@ class LibraryFlowTest < ActionDispatch::IntegrationTest
     get root_path
     assert_response :success
     assert_select "h1, h2, p, span, div", text: /Library Demo/
+    assert_includes @response.body, "@hotwired/turbo-rails"
   end
 
   private

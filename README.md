@@ -58,7 +58,7 @@ bin/rails db:migrate
 bin/rails tailwindcss:build
 ```
 
-Then opt a parent into `Library.to` and a holder into `Placeable.to`, and register an adapter per item type. Staff screens belong in Recording Studio Admin, not in this gem.
+Then opt a parent into `Library.to` and a holder into `Placeable.to`, and register an adapter per item type. Pin `@hotwired/turbo-rails` in the host importmap so the placements picker can load inside a navigable modal. Staff screens belong in Recording Studio Admin, not in this gem.
 
 ## Development
 
