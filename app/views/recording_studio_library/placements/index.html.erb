@@ -1,0 +1,91 @@
+<% navigation_params = library_navigation_params %>
+<% picker_src = library_picker_path_for(@recording, **navigation_params.merge(modal: "1", modal_id: @picker_modal_id)) %>
+
+<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
+  <%= render FlatPack::PageNav::Component.new(
+    back_icon: "arrow-left",
+    back_label: t("recording_studio.library.navigation.back"),
+    anchor_url: library_page_nav_anchor_url(fallback: main_app.root_path),
+    anchor_label: t("recording_studio.library.navigation.return_to_source")
+  ) %>
+
+  <%= render FlatPack::PageTitle::Component.new(
+    title: t("recording_studio.library.placements.title"),
+    subtitle: t("recording_studio.library.placements.subtitle"),
+    variant: :h1
+  ) %>
+
+  <% if @can_add %>
+    <div class="flex flex-wrap items-center gap-3">
+      <%= render FlatPack::Button::Component.new(
+        text: t("recording_studio.library.placements.add"),
+        style: :primary,
+        size: :md,
+        icon: "plus",
+        type: "button",
+        data: {
+          action: "click->flat-pack--modal#open",
+          modal_id: @picker_modal_id
+        }
+      ) %>
+      <%= render FlatPack::Button::Component.new(
+        text: t("recording_studio.library.picker.title"),
+        style: :secondary,
+        size: :md,
+        href: library_picker_path_for(@recording, **navigation_params)
+      ) %>
+    </div>
+
+    <%= render FlatPack::Modal::Component.new(
+      id: @picker_modal_id,
+      title: t("recording_studio.library.picker.title"),
+      size: :xl,
+      navigable: true,
+      src: picker_src,
+      body_height_mode: :fixed,
+      body_height: "32rem"
+    ) %>
+  <% end %>
+
+  <% if @resolved.any? %>
+    <%= render FlatPack::List::Component.new(
+      orderable: @can_reorder,
+      orderable_url: @can_reorder ? library_reorder_placements_path_for(@recording, **navigation_params) : nil,
+      param_uuid_name: "moving_recording_id",
+      param_target_position_name: "target_position",
+      divider: true
+    ) do %>
+      <% @resolved.each do |resolved| %>
+        <%= render FlatPack::List::Item.new(id: resolved.placement_recording.id) do %>
+          <div class="flex flex-1 items-center gap-3">
+            <div class="h-12 w-12 shrink-0 overflow-hidden rounded-lg">
+              <%= resolved.adapter.preview(self) %>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="truncate font-medium"><%= resolved.adapter.title %></p>
+              <p class="text-xs text-(--surface-muted-content-color)"><%= resolved.adapter.type_label %></p>
+            </div>
+            <% if @can_remove %>
+              <%= form_with url: destroy_placement_path(resolved.placement_recording, navigation_params), method: :delete, class: "inline-flex" do %>
+                <%= render FlatPack::Button::Component.new(
+                  icon: "trash",
+                  icon_only: true,
+                  style: :ghost,
+                  size: :md,
+                  type: "submit",
+                  aria: { label: t("recording_studio.library.placements.remove_aria", title: resolved.adapter.title) }
+                ) %>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% else %>
+    <%= render FlatPack::EmptyState::Component.new(
+      title: t("recording_studio.library.placements.empty_title"),
+      description: t("recording_studio.library.placements.empty_subtitle"),
+      icon: :queue_list
+    ) %>
+  <% end %>
+</div>

@@ -1,0 +1,28 @@
+<% navigation_params = library_navigation_params %>
+
+<div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
+  <%= render FlatPack::PageNav::Component.new(
+    back_icon: "arrow-left",
+    back_label: t("recording_studio.library.navigation.back"),
+    anchor_url: library_path_for(@library, **navigation_params),
+    anchor_label: t("recording_studio.library.navigation.return_to_source")
+  ) %>
+
+  <%= render FlatPack::PageTitle::Component.new(
+    title: t("recording_studio.library.items.new_title"),
+    variant: :h1
+  ) %>
+
+  <%= form_with model: @sample_item,
+                url: recording_sample_items_path(@library, navigation_params),
+                scope: :sample_item,
+                class: "flex flex-col gap-4" do |form| %>
+    <%= @adapter.create_fields(self, form) %>
+    <%= render FlatPack::Button::Component.new(
+      text: t("recording_studio.library.items.save"),
+      style: :primary,
+      size: :md,
+      type: "submit"
+    ) %>
+  <% end %>
+</div>

@@ -11,7 +11,7 @@ class RecordingStudioDeclarationsTest < ActiveSupport::TestCase
     assert RecordingStudio.validate_recordable_declarations!
     assert_equal ["Workspace"], RecordingStudio.root_recordable_types
     assert_equal %w[Workspace Folder], RecordingStudio.allowed_parent_types_for("Folder")
-    assert_equal %w[Workspace Folder], RecordingStudio.allowed_parent_types_for(Page)
+    assert_equal %w[Workspace Folder RecordingStudioLibrary::Library], RecordingStudio.allowed_parent_types_for(Page)
   end
 
   test "root recordable creates a root recording" do
@@ -82,15 +82,16 @@ class RecordingStudioDeclarationsTest < ActiveSupport::TestCase
     assert_equal "Page cannot be recorded under Page", error.message
   end
 
-  test "accessible is enabled on workspace and example mixin stays opt-in" do
+  test "accessible is enabled on workspace and library stays opt-in" do
     assert RecordingStudio.capability_enabled?(:accessible, for: "Workspace")
     refute RecordingStudio.capability_enabled?(:accessible, for: "Folder")
     refute RecordingStudio.capability_enabled?(:accessible, for: "Page")
 
-    assert RecordingStudio.capability_enabled?(:example, for: "Workspace")
-    refute RecordingStudio.capability_enabled?(:example, for: "Folder")
-    refute RecordingStudio.capability_enabled?(:example, for: "Page")
-    assert_equal({ label: "dummy workspace" }, RecordingStudio.capability_options(:example, for: "Workspace"))
+    assert RecordingStudio.capability_enabled?(:library, for: "Workspace")
+    refute RecordingStudio.capability_enabled?(:library, for: "Folder")
+    refute RecordingStudio.capability_enabled?(:library, for: "Page")
+    assert RecordingStudio.capability_enabled?(:placeable, for: "Showcase")
+    refute RecordingStudio.capability_enabled?(:placeable, for: "Workspace")
   end
 
   private

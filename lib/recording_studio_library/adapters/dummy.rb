@@ -1,0 +1,110 @@
+# frozen_string_literal: true
+
+module RecordingStudioLibrary
+  module Adapters
+    # Built-in adapter for the gem's sample item and any recordable that
+    # exposes title / summary / accent. Ships so the gem is usable without
+    # Attachable or Video.
+    class Dummy < Base
+      ACCENTS = {
+        "coral" => "#e07a5f",
+        "sage" => "#81b29a",
+        "ink" => "#3d405b",
+        "sand" => "#f2cc8f",
+        "sky" => "#4d9de0"
+      }.freeze
+
+      def icon
+        :sparkles
+      end
+
+      def type_label
+        return super unless type_name == "RecordingStudioLibrary::SampleItem"
+
+        I18n.t("recording_studio.library.sample_item.type")
+      end
+
+      def title
+        recordable_value(:title) || super
+      end
+
+      def search_text
+        [title, summary, accent_name, type_label].compact.join(" ")
+      end
+
+      def preview(view)
+        color_swatch(view, size_class: "h-12 w-12", text_class: "text-sm")
+      end
+
+      def thumbnail(view)
+        color_swatch(view, size_class: "h-full w-full min-h-24", text_class: "text-2xl")
+      end
+
+      def full_view(view)
+        view.safe_join(
+          [
+            color_swatch(view, size_class: "h-40 w-full", text_class: "text-4xl"),
+            view.tag.p(summary, class: "mt-4 text-sm leading-6 text-(--surface-muted-content-color)")
+          ]
+        )
+      end
+
+      def edit_fields(view, form)
+        view.safe_join(
+          [
+            view.render(
+              FlatPack::TextInput::Component.new(
+                form: form,
+                name: :title,
+                label: I18n.t("recording_studio.library.items.title_label"),
+                value: title
+              )
+            ),
+            view.render(
+              FlatPack::TextInput::Component.new(
+                form: form,
+                name: :summary,
+                label: I18n.t("recording_studio.library.items.summary_label"),
+                value: summary
+              )
+            ),
+            view.render(
+              FlatPack::Select::Component.new(
+                form: form,
+                name: :accent,
+                label: I18n.t("recording_studio.library.items.accent_label"),
+                options: ACCENTS.keys.map { |key| [key.capitalize, key] },
+                value: accent_name
+              )
+            )
+          ]
+        )
+      end
+
+      def summary
+        recordable_value(:summary)
+      end
+
+      def accent_name
+        value = recordable_value(:accent).to_s.downcase
+        ACCENTS.key?(value) ? value : "coral"
+      end
+
+      def accent_hex
+        ACCENTS.fetch(accent_name)
+      end
+
+      private
+
+      def color_swatch(view, size_class:, text_class:)
+        view.tag.div(
+          class: "flex #{size_class} items-center justify-center rounded-lg text-white",
+          style: "background-color: #{accent_hex};",
+          aria: { hidden: true }
+        ) do
+          view.tag.span(title.to_s.first.to_s.upcase.presence || "S", class: "#{text_class} font-semibold")
+        end
+      end
+    end
+  end
+end
