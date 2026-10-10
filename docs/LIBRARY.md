@@ -81,9 +81,7 @@ Staff admin UI belongs in Recording Studio Admin, not here.
 
 ### Flatpack gaps (this gem did not invent replacements)
 
-- No generic checkbox component. The picker uses a native `check_box_tag` next to the adapter thumbnail.
-- No textarea component. Sample create/edit uses `FlatPack::TextInput` for title and summary.
-- No dedicated multi-select tile. Picker tiles are `FlatPack::Grid` cards wrapping the native checkbox.
+- No dedicated multi-select tile. Picker tiles are `FlatPack::Grid` cards wrapping `FlatPack::Checkbox`. Sample create/edit uses `FlatPack::TextInput` and `FlatPack::TextArea`.
 
 ## Install
 

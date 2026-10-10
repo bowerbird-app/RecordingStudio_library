@@ -54,24 +54,22 @@ module RecordingStudioLibrary
           [
             view.render(
               FlatPack::TextInput::Component.new(
-                form: form,
-                name: :title,
+                name: field_name(form, :title),
                 label: I18n.t("recording_studio.library.items.title_label"),
                 value: title
               )
             ),
             view.render(
-              FlatPack::TextInput::Component.new(
-                form: form,
-                name: :summary,
+              FlatPack::TextArea::Component.new(
+                name: field_name(form, :summary),
                 label: I18n.t("recording_studio.library.items.summary_label"),
-                value: summary
+                value: summary,
+                rows: 3
               )
             ),
             view.render(
               FlatPack::Select::Component.new(
-                form: form,
-                name: :accent,
+                name: field_name(form, :accent),
                 label: I18n.t("recording_studio.library.items.accent_label"),
                 options: ACCENTS.keys.map { |key| [key.capitalize, key] },
                 value: accent_name
@@ -95,6 +93,13 @@ module RecordingStudioLibrary
       end
 
       private
+
+      def field_name(form, attribute)
+        object_name = form.respond_to?(:object_name) ? form.object_name : nil
+        return attribute if object_name.blank?
+
+        "#{object_name}[#{attribute}]"
+      end
 
       def color_swatch(view, size_class:, text_class:)
         view.tag.div(

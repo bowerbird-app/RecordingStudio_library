@@ -118,11 +118,27 @@ class LibraryFlowTest < ActionDispatch::IntegrationTest
     get recording_studio_library.recording_picker_path(@showcase_recording)
     assert_response :success
     assert_select "p", text: /Picker sample/
+    assert_includes @response.body, "flat-pack-checkbox"
 
     get recording_studio_library.recording_picker_path(@showcase_recording, modal: "1", modal_id: "library-picker")
     assert_response :success
     assert_includes @response.body, "library-picker-screen"
     assert_includes @response.body, "data-fp-nav"
+  end
+
+  test "sample create posts nested fields through the adapter" do
+    assert_difference -> { RecordingStudioLibrary::SampleItem.count }, 1 do
+      post recording_studio_library.recording_sample_items_path(@library), params: {
+        sample_item: { title: "Posted sample", summary: "From the form", accent: "sky" }
+      }
+    end
+
+    assert_redirected_to recording_studio_library.library_path(@library)
+    follow_redirect!
+    assert_select "p", text: /Posted sample/
+    item = RecordingStudioLibrary::SampleItem.find_by!(title: "Posted sample")
+    assert_equal "From the form", item.summary
+    assert_equal "sky", item.accent
   end
 
   test "placements editor renders orderable list" do

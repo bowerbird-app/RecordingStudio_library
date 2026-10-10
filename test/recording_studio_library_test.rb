@@ -106,5 +106,6 @@ class RecordingStudioLibraryTest < Minitest::Test
     assert_includes picker, "flat_pack_modal_screen"
     assert_includes body, "fp_nav"
     assert_includes body, "item_recording_ids[]"
+    assert_includes body, "FlatPack::Checkbox::Component"
   end
 end

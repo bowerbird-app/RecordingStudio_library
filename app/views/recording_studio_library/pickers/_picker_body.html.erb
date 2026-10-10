@@ -52,10 +52,13 @@
               <%= adapter.thumbnail(self) %>
             </div>
             <div class="flex items-start gap-2">
-              <%= check_box_tag "item_recording_ids[]", recording.id, false,
+              <%= render FlatPack::Checkbox::Component.new(
+                    name: "item_recording_ids[]",
+                    value: recording.id,
                     id: "picker-item-#{recording.id}",
                     disabled: placed,
-                    aria: { label: t("recording_studio.library.picker.select_aria", title: adapter.title) } %>
+                    aria: { label: t("recording_studio.library.picker.select_aria", title: adapter.title) }
+                  ) %>
               <div class="min-w-0">
                 <p class="truncate font-medium"><%= adapter.title %></p>
                 <p class="text-xs text-(--surface-muted-content-color)">
