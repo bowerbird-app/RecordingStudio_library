@@ -36,6 +36,9 @@ class ConfigurationTest < Minitest::Test
     assert_instance_of RecordingStudio::Hooks, configuration.hooks
     assert_equal :view, configuration.auth_roles[:view]
     assert_equal :edit, configuration.auth_roles[:upload]
+    assert_equal false, configuration.unfiltered_access
+    refute_respond_to configuration, :impersonator
+    refute_respond_to configuration, :include_trashed_images
   end
 
   def test_merge_accepts_string_keys

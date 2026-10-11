@@ -1,11 +1,8 @@
 <% navigation_params = library_navigation_params %>
 
 <div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
-  <%= render FlatPack::PageNav::Component.new(
-    back_icon: "arrow-left",
-    back_label: t("recording_studio.library.navigation.back"),
-    anchor_url: library_path_for(@library, **navigation_params),
-    anchor_label: t("recording_studio.library.navigation.return_to_source")
+  <%= library_screen_page_nav(
+    back_url: library_path_for(@library, **navigation_params)
   ) %>
 
   <%= render FlatPack::PageTitle::Component.new(

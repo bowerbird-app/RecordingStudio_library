@@ -85,6 +85,8 @@ en:
         library_required: "A library is required."
         type_required: "Choose a type."
         type_not_allowed: "That type cannot be placed here."
+        adapter_not_registered: "That type is not set up for this library."
+        item_not_visible: "You cannot place that item."
         library_not_allowed: "That library cannot be used here."
         key_not_allowed: "That library is not available here."
         cannot_place_library: "A library cannot be placed."

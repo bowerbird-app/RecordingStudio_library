@@ -46,6 +46,35 @@ module RecordingStudioLibrary
       t("recording_studio.library.confirm.trash_in_use", places: labels.to_sentence)
     end
 
+    def library_screen_page_nav(title: nil, back_url:, back_label: nil, anchor_url: nil, anchor_label: nil)
+      back_label ||= t("recording_studio.library.navigation.back")
+      anchor_label ||= t("recording_studio.library.navigation.return_to_source")
+      close_url = anchor_url.presence || back_url
+
+      if library_uses_host_page_nav?
+        recording_studio_page_nav(
+          title: title,
+          page_nav_back_url: back_url,
+          page_nav_back_label: back_label,
+          page_nav_anchor_url: anchor_url,
+          page_nav_anchor_label: anchor_label
+        )
+        nil
+      else
+        render FlatPack::PageNav::Component.new(
+          back_icon: "arrow-left",
+          back_label: back_label,
+          anchor_url: close_url,
+          anchor_label: anchor_label
+        )
+      end
+    end
+
+    def library_uses_host_page_nav?
+      configured = RecordingStudioLibrary.configuration.layout
+      (configured.blank? || configured.to_sym == :default) && respond_to?(:recording_studio_page_nav)
+    end
+
     private
 
     def library_engine_routes

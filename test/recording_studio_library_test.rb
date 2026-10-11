@@ -107,5 +107,35 @@ class RecordingStudioLibraryTest < Minitest::Test
     assert_includes body, "fp_nav"
     assert_includes body, "item_recording_ids[]"
     assert_includes body, "FlatPack::Checkbox::Component"
+    assert_includes body, "FlatPack::Card::Component"
+    refute_includes body, "border-(--surface-border-color)"
+  end
+
+  def test_engine_screens_use_host_page_nav_helper
+    Dir[File.expand_path("../app/views/recording_studio_library/**/*.erb", __dir__)].each do |path|
+      source = File.read(path)
+      refute_includes source, "FlatPack::PageNav::Component", path
+    end
+
+    helper = File.read(File.expand_path("../app/helpers/recording_studio_library/application_helper.rb", __dir__))
+    assert_includes helper, "def library_screen_page_nav"
+    assert_includes helper, "recording_studio_page_nav"
+  end
+
+  def test_find_library_is_find_only
+    source = File.read(File.expand_path("../lib/recording_studio_library.rb", __dir__))
+
+    assert_includes source, "def find_library(parent, key: :default)"
+    refute_includes source, "alias include_trashed_images"
+  end
+
+  def test_place_new_validates_before_recording
+    source = File.read(File.expand_path("../app/services/recording_studio_library/services/place_new.rb", __dir__))
+
+    assert_includes source, "assert_adapter_registered!"
+    assert_includes source, "assert_library_allows_type!"
+    assert_includes source, "authorize_library!"
+    assert_includes source, "ActiveRecord::Base.transaction"
+    refute_match(/safe_constantize.*\n.*record!/m, source)
   end
 end

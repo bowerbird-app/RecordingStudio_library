@@ -3,29 +3,30 @@
 module RecordingStudioLibrary
   module Services
     class Place < ApplicationService
-      def initialize(parent_recording:, item_recording:, actor: nil, impersonator: nil)
+      def initialize(parent_recording:, item_recording:, actor: nil)
         @parent_recording = parent_recording
         @item_recording = item_recording
         @actor = actor
-        @impersonator = impersonator
       end
 
       private
 
-      attr_reader :parent_recording, :item_recording, :actor, :impersonator
+      attr_reader :parent_recording, :item_recording, :actor
 
       def perform
         require_recording_studio!
         parent = require_parent!
         item = require_item!
+        resolved_actor = resolve_actor(actor)
         assert_placement_enabled!(parent)
         assert_same_root!(parent, item)
         assert_placeable_type!(parent, item)
         assert_library_allowed!(parent, item)
-        authorize_placement!(action: :upload, actor: resolve_actor(actor), recording: parent)
+        assert_item_visible!(item, resolved_actor)
+        authorize_placement!(action: :upload, actor: resolved_actor, recording: parent)
 
-        placement = record_placement(parent, item)
-        append_order(parent, placement)
+        placement = record_placement(parent, item, resolved_actor)
+        append_order(parent, placement, resolved_actor)
         success(placement)
       end
 
@@ -43,16 +44,16 @@ module RecordingStudioLibrary
         item_recording
       end
 
-      def record_placement(parent, item)
-        parent.record(RecordingStudioLibrary::Placement, parent_recording: parent, actor: resolve_actor(actor)) do |placement|
+      def record_placement(parent, item, resolved_actor)
+        parent.record(RecordingStudioLibrary::Placement, parent_recording: parent, actor: resolved_actor) do |placement|
           placement.item_recording_id = item.id
         end
       end
 
-      def append_order(parent, placement)
+      def append_order(parent, placement, resolved_actor)
         return unless parent.respond_to?(:recording_studio_orderable_append!)
 
-        parent.recording_studio_orderable_append!(placement, actor: resolve_actor(actor))
+        parent.recording_studio_orderable_append!(placement, actor: resolved_actor)
       rescue StandardError
         placement
       end

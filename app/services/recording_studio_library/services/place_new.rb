@@ -18,16 +18,29 @@ module RecordingStudioLibrary
       def perform
         require_recording_studio!
         parent = require_parent!
+        resolved_actor = resolve_actor(actor)
         assert_placement_enabled!(parent)
-        authorize_placement!(action: :upload, actor: resolve_actor(actor), recording: parent)
+        authorize_placement!(action: :upload, actor: resolved_actor, recording: parent)
 
         library = require_library!(parent)
-        item = record_item!(library)
-        Place.call(
-          parent_recording: parent,
-          item_recording: item,
-          actor: resolve_actor(actor)
-        ).then do |result|
+        type_name = type_string
+        assert_adapter_registered!(type_name)
+        assert_library_allows_type!(library, type_name)
+        assert_library_key_allowed!(library)
+        assert_placeable_type!(parent, type_name)
+        RecordingStudioLibrary::Authorization.authorize_library!(
+          action: :upload,
+          actor: resolved_actor,
+          recording: library
+        )
+
+        ActiveRecord::Base.transaction do
+          item = record_item!(library, resolved_actor)
+          result = Place.call(
+            parent_recording: parent,
+            item_recording: item,
+            actor: resolved_actor
+          )
           raise ArgumentError, result.error if result.failure?
 
           success(result.value)
@@ -48,27 +61,23 @@ module RecordingStudioLibrary
         library
       end
 
-      def record_item!(library)
-        klass = item_class
-        recordable = klass.new(attrs)
-        event = RecordingStudio.record!(
-          action: "created",
-          recordable: recordable,
-          root_recording: LibraryQuery.root_for(library),
-          parent_recording: library,
-          actor: resolve_actor(actor)
-        )
-        event.recording
-      end
-
-      def item_class
+      def type_string
         name = type.is_a?(Class) ? type.name : type.to_s
         raise ArgumentError, I18n.t("recording_studio.library.errors.type_required") if name.blank?
 
-        klass = name.safe_constantize
-        raise ArgumentError, I18n.t("recording_studio.library.errors.type_not_allowed") if klass.blank?
+        name
+      end
 
-        klass
+      def record_item!(library, resolved_actor)
+        result = RecordLibraryItem.call(
+          library_recording: library,
+          type: type,
+          attrs: attrs,
+          actor: resolved_actor
+        )
+        raise ArgumentError, result.error if result.failure?
+
+        result.value
       end
     end
   end

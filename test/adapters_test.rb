@@ -22,6 +22,11 @@ class AdaptersTest < Minitest::Test
 
   def test_unknown_types_fall_back_to_base
     assert_equal RecordingStudioLibrary::Adapters::Base, RecordingStudioLibrary::Adapters.for("Unknown::Thing")
+    refute RecordingStudioLibrary::Adapters.registered?("Unknown::Thing")
+  end
+
+  def test_registered_predicate_is_true_for_sample_items
+    assert RecordingStudioLibrary::Adapters.registered?("RecordingStudioLibrary::SampleItem")
   end
 
   def test_register_overrides_a_type

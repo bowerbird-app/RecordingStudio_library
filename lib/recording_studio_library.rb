@@ -23,6 +23,13 @@ module RecordingStudioLibrary
       )
     end
 
+    def find_library(parent, key: :default)
+      return parent if Placements.library_recording?(parent)
+
+      owner = Services::LibraryQuery.library_parent_for(parent)
+      Services::LibraryQuery.for_parent_and_key(owner, key)
+    end
+
     def libraries_for(parent)
       Services::LibraryQuery.live_for_parent(parent)
     end

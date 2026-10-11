@@ -13,7 +13,8 @@ module RecordingStudioLibrary
                   :authorize_with,
                   :library_label,
                   :picker_libraries,
-                  :place_label
+                  :place_label,
+                  :unfiltered_access
     attr_reader :hooks, :auth_roles
 
     def initialize
@@ -24,6 +25,7 @@ module RecordingStudioLibrary
       @library_label = default_library_label
       @picker_libraries = default_picker_libraries
       @place_label = default_place_label
+      @unfiltered_access = false
     end
 
     def merge!(hash)
@@ -83,8 +85,7 @@ module RecordingStudioLibrary
 
     def default_picker_libraries
       lambda { |parent_recording|
-        holder = RecordingStudioLibrary::Services::LibraryQuery.library_parent_for(parent_recording)
-        [RecordingStudioLibrary.library_for(holder)]
+        Array(RecordingStudioLibrary.find_library(parent_recording)).compact
       }
     end
 

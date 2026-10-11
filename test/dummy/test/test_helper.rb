@@ -12,6 +12,18 @@ module LibraryTestHelpers
 
     result
   end
+
+  def grant_role!(user, recording, role, manager:)
+    result = RecordingStudioAccessible.grant_access(
+      recording: recording,
+      actor: user,
+      role: role,
+      manager_actor: manager
+    )
+    raise result.error if result.respond_to?(:failure?) && result.failure?
+
+    result
+  end
 end
 
 class ActiveSupport::TestCase

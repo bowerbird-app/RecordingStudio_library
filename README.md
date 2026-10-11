@@ -6,11 +6,11 @@ Version **0.1.0**. Recording Studio dummy GitHub tag `v4.4.0`, Accessible `v0.14
 
 ## What it does
 
-- Opens a keyed library on first use (`library_for(parent, key: :default)`). People never create or title it.
-- Keeps items as ordinary child recordings of that library.
-- Places ordered pointers under a holder (`place!`, `reorder!`, `remove!`).
-- Resolves those pointers for display, skipping trash, missing items, other workspaces, and anything the actor cannot see.
-- Renders everything through a small adapter registry. A built-in dummy adapter ships for tests and the dummy app.
+- Opens a keyed library on first use (`library_for(parent, key: :default)`). People never create or title it. Read paths use `find_library`, which never creates.
+- Keeps items as ordinary child recordings of that library. `Library.to(types:, keys:)` is enforced whenever an item is recorded into a library.
+- Places ordered pointers under a holder (`place!`, `reorder!`, `remove!`). `place!` requires the actor can view the item. The picker lists library items only; placing a same-workspace item from outside a library stays API-only.
+- Resolves those pointers for display, skipping trash, missing items, other workspaces, and anything the actor cannot see. Anonymous visitors go through Accessible. System jobs can set `unfiltered_access`.
+- Renders everything through a small adapter registry. Hosts must register an adapter per item type. Unregistered types fall back to `Adapters::Base` for display only, and cannot be recorded through `place_new!`.
 
 See [docs/LIBRARY.md](docs/LIBRARY.md) for the recording tree, capabilities, helpers, and UI.
 

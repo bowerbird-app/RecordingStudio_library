@@ -45,8 +45,6 @@ module RecordingStudioLibrary
       end
 
       def visible?(recording)
-        return true if actor.nil?
-
         RecordingStudioLibrary::Authorization.visible?(actor: actor, recording: recording)
       end
     end

@@ -74,10 +74,7 @@ module RecordingStudioLibrary
     private
 
     def find_library
-      recording = find_recording(params[:recording_id] || params[:library_id])
-      return recording if Placements.library_recording?(recording)
-
-      RecordingStudioLibrary.library_for(recording, key: params[:key].presence || :default, actor: current_library_actor)
+      find_library_recording(find_recording(params[:recording_id] || params[:library_id]))
     end
 
     def find_item
@@ -96,14 +93,15 @@ module RecordingStudioLibrary
     end
 
     def create_item(library)
-      recordable = SampleItem.new(sample_item_params)
-      RecordingStudio.record!(
-        action: "created",
-        recordable: recordable,
-        root_recording: library.root_recording || library,
-        parent_recording: library,
+      result = Services::RecordLibraryItem.call(
+        library_recording: library,
+        type: SampleItem,
+        attrs: sample_item_params.to_h,
         actor: current_library_actor
-      ).recording
+      )
+      raise ArgumentError, result.error if result.failure?
+
+      result.value
     end
 
     def adapter_for_recordable(recordable)

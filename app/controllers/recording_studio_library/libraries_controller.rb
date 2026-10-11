@@ -30,13 +30,7 @@ module RecordingStudioLibrary
     private
 
     def library_from(recording)
-      return recording if Placements.library_recording?(recording)
-
-      RecordingStudioLibrary.library_for(
-        recording,
-        key: params[:key].presence || :default,
-        actor: current_library_actor
-      )
+      find_library_recording(recording)
     end
 
     def type_options_for(library)

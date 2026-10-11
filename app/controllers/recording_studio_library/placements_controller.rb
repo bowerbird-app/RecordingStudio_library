@@ -28,7 +28,12 @@ module RecordingStudioLibrary
       ids = Array(params[:item_recording_ids]).presence || Array(params.dig(:placement, :item_recording_id))
       errors = []
       ids.each do |id|
-        item = RecordingStudio::Recording.find(id)
+        item = RecordingStudio::Recording.find_by(id: id)
+        if item.blank?
+          errors << t("recording_studio.library.errors.not_found")
+          next
+        end
+
         result = Services::Place.call(
           parent_recording: recording,
           item_recording: item,
@@ -43,7 +48,7 @@ module RecordingStudioLibrary
 
     def reorder
       recording = find_recording
-      authorize!(:revise, recording)
+      authorize!(:upload, recording)
       result = Services::ReorderPlacements.call(
         parent_recording: recording,
         ordered_recording_ids: params[:ordered_recording_ids],

@@ -63,7 +63,7 @@ module RecordingStudioLibrary
       end
 
       def visible?(actor:, recording:)
-        return true if actor.blank? && !accessible_loaded?
+        return true if RecordingStudioLibrary.configuration.unfiltered_access
         return true unless accessible_loaded?
 
         RecordingStudioAccessible::Authorization.allowed?(actor: actor, recording: recording, role: :view)

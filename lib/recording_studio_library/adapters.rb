@@ -24,6 +24,10 @@ module RecordingStudioLibrary
         self.for(recording).new(recording)
       end
 
+      def registered?(type)
+        registry.key?(type.to_s)
+      end
+
       def registered_types
         registry.keys
       end

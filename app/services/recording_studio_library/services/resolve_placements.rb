@@ -3,9 +3,9 @@
 module RecordingStudioLibrary
   module Services
     class ResolvePlacements < ApplicationService
-      def initialize(parent_recording:, include_trashed: false, include_trashed_images: false, actor: nil)
+      def initialize(parent_recording:, include_trashed: false, actor: nil)
         @parent_recording = parent_recording
-        @include_trashed = include_trashed || include_trashed_images
+        @include_trashed = include_trashed
         @actor = actor
       end
 
@@ -62,7 +62,22 @@ module RecordingStudioLibrary
         id = child.recordable.try(:item_recording_id)
         return if id.blank?
 
-        RecordingStudio::Recording.includes(:recordable).find_by(id: id)
+        items_by_id[id.to_s]
+      end
+
+      def items_by_id
+        @items_by_id ||= begin
+          ids = placement_children.filter_map { |child| child.recordable.try(:item_recording_id) }.uniq
+          fetch_recordings(ids).index_by { |recording| recording.id.to_s }
+        end
+      end
+
+      def fetch_recordings(ids)
+        return [] if ids.empty?
+
+        scope = RecordingStudio::Recording.where(id: ids)
+        scope = scope.includes(:recordable) if scope.respond_to?(:includes)
+        Array(scope)
       end
 
       def usable_item?(item_recording)
@@ -78,8 +93,6 @@ module RecordingStudioLibrary
       end
 
       def visible_to_actor?(item_recording)
-        return true if actor.nil?
-
         RecordingStudioLibrary::Authorization.visible?(actor: actor, recording: item_recording)
       end
     end

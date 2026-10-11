@@ -29,12 +29,42 @@ module RecordingStudioLibrary
         left_root.present? && left_root == right_root
       end
 
-      def assert_placeable_type!(parent, item)
+      def assert_placeable_type!(parent, item_or_type)
+        type_name = item_or_type.respond_to?(:recordable_type) ? item_or_type.recordable_type.to_s : item_or_type.to_s
         allowed = allowed_item_types_for(parent)
         return if allowed.empty?
-        return if allowed.include?(item.try(:recordable_type).to_s)
+        return if allowed.include?(type_name)
 
         raise ArgumentError, I18n.t("recording_studio.library.errors.type_not_allowed")
+      end
+
+      def assert_library_allows_type!(library, type_name)
+        allowed = LibraryQuery.allowed_item_types_for(library)
+        return if allowed.empty?
+        return if allowed.include?(type_name.to_s)
+
+        raise ArgumentError, I18n.t("recording_studio.library.errors.type_not_allowed")
+      end
+
+      def assert_library_key_allowed!(library)
+        parent = library.try(:parent_recording)
+        allowed = LibraryQuery.allowed_keys_for(parent)
+        return if allowed.empty?
+        return if allowed.include?(LibraryQuery.key_for(library))
+
+        raise ArgumentError, I18n.t("recording_studio.library.errors.key_not_allowed")
+      end
+
+      def assert_adapter_registered!(type_name)
+        return if RecordingStudioLibrary::Adapters.registered?(type_name)
+
+        raise ArgumentError, I18n.t("recording_studio.library.errors.adapter_not_registered")
+      end
+
+      def assert_item_visible!(item, actor)
+        return if RecordingStudioLibrary::Authorization.visible?(actor: actor, recording: item)
+
+        raise ArgumentError, I18n.t("recording_studio.library.errors.item_not_visible")
       end
 
       def assert_library_allowed!(parent, item)

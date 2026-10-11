@@ -28,6 +28,15 @@ module RecordingStudioLibrary
       RecordingStudio::Recording.find(id)
     end
 
+    def find_library_recording(recording, key: params[:key].presence || :default)
+      return recording if Placements.library_recording?(recording)
+
+      library = RecordingStudioLibrary.find_library(recording, key: key)
+      raise ActiveRecord::RecordNotFound if library.blank?
+
+      library
+    end
+
     def handle_not_authorized(exception)
       respond_to do |format|
         format.html { redirect_back_or_to(main_app.root_path, alert: exception.message) }

@@ -46,4 +46,13 @@ class LibraryAccessTest < ActiveSupport::TestCase
     assert visible.any? { |entry| entry.item_recording.id == @item.id }
     refute hidden.any? { |entry| entry.item_recording.id == @item.id }
   end
+
+  test "library listing hides items from anonymous visitors" do
+    listed = RecordingStudioLibrary::Services::LibraryItems.call(
+      library_recording: @library,
+      actor: nil
+    ).value || []
+
+    refute listed.any? { |recording, _adapter| recording.id == @item.id }
+  end
 end
