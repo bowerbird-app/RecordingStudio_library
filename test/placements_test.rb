@@ -530,15 +530,13 @@ class PlacementsTest < Minitest::Test
     relation
   end
 
-  def stub_recordings(items)
+  def stub_recordings(items, &)
     recording_class.stub(:where, lambda { |*args|
       ids = where_ids(args)
       found = ids.filter_map { |id| items[id.to_s] }
       found.define_singleton_method(:includes) { |*| found }
       found
-    }) do
-      yield
-    end
+    }, &)
   end
 
   def where_ids(args)

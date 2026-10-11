@@ -131,7 +131,8 @@ class LibraryControllerAuthTest < ActionDispatch::IntegrationTest
     assert_no_difference -> { RecordingStudioLibrary::Library.count } do
       get recording_studio_library.recording_library_path(empty_root)
     end
-    assert_redirected_to root_path
+    assert_response :redirect
+    assert_equal "/", URI.parse(@response.redirect_url).path
     assert_equal I18n.t("recording_studio.library.errors.not_found"), flash[:alert]
   end
 

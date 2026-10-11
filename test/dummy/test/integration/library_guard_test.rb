@@ -42,7 +42,7 @@ class LibraryGuardTest < ActiveSupport::TestCase
 
   test "place refuses an item Accessible hides from the actor" do
     item = record_sample("Hidden from editor")
-    RecordingStudioLibrary::Authorization.stub(:visible?, false) do
+    with_replaced_singleton(RecordingStudioLibrary::Authorization, :visible?, ->(**) { false }) do
       error = assert_raises(ArgumentError) do
         RecordingStudioLibrary.place!(@holder, item, actor: @user)
       end
@@ -132,7 +132,7 @@ class LibraryGuardTest < ActiveSupport::TestCase
     )
 
     assert_no_difference -> { RecordingStudioLibrary::SampleItem.count } do
-      RecordingStudioLibrary::Services::Place.stub(:call, failure) do
+      with_replaced_singleton(RecordingStudioLibrary::Services::Place, :call, ->(**) { failure }) do
         result = RecordingStudioLibrary::Services::PlaceNew.call(
           parent_recording: @holder,
           library: @library,
@@ -182,5 +182,15 @@ class LibraryGuardTest < ActiveSupport::TestCase
       parent_recording: @library,
       actor: @user
     ).recording
+  end
+
+  def with_replaced_singleton(target, name, replacement)
+    original = target.method(name)
+    target.define_singleton_method(name, &replacement)
+    yield
+  ensure
+    target.define_singleton_method(name) do |*args, **kwargs, &block|
+      original.call(*args, **kwargs, &block)
+    end
   end
 end

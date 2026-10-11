@@ -33,6 +33,7 @@ Metrics/MethodLength:
     - "test/**/*"
     - "lib/generators/**/*"
     - "app/controllers/**/*"
+    - "app/helpers/**/*"
     - "app/services/**/*"
     - "app/models/**/*"
     - "lib/recording_studio_library/engine.rb"

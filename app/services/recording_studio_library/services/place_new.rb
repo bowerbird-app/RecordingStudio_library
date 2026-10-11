@@ -3,7 +3,7 @@
 module RecordingStudioLibrary
   module Services
     class PlaceNew < ApplicationService
-      def initialize(parent_recording:, library:, type:, library_recording: nil, attrs: {}, actor: nil)
+      def initialize(parent_recording:, type:, library: nil, library_recording: nil, attrs: {}, actor: nil)
         @parent_recording = parent_recording
         @library_recording = library_recording.presence || library
         @type = type

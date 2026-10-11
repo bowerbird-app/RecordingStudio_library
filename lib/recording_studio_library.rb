@@ -49,7 +49,7 @@ module RecordingStudioLibrary
       unwrap!(
         Services::PlaceNew.call(
           parent_recording: holder,
-          library_recording: library,
+          library: library,
           type: type,
           attrs: attrs,
           actor: actor
