@@ -108,7 +108,17 @@ class RecordingStudioLibraryTest < Minitest::Test
     assert_includes body, "item_recording_ids[]"
     assert_includes body, "FlatPack::Checkbox::Component"
     assert_includes body, "FlatPack::Card::Component"
+    assert_includes body, 'card.media(aspect_ratio: "4/3", padding: :none)'
     refute_includes body, "border-(--surface-border-color)"
+    refute_includes body, "aspect-4/3 overflow-hidden"
+  end
+
+  def test_library_grid_uses_flatpack_card_media_flush_to_the_top
+    grid = File.read(File.expand_path("../app/views/recording_studio_library/libraries/_grid.html.erb", __dir__))
+
+    assert_includes grid, "FlatPack::Card::Component"
+    assert_includes grid, 'card.media(aspect_ratio: "4/3", padding: :none)'
+    refute_includes grid, "aspect-4/3 overflow-hidden"
   end
 
   def test_engine_screens_use_host_page_nav_helper

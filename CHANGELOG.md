@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `place!` requires the actor can view the item. `place_new!` validates adapter, library types/keys, holder types, and upload rights before recording, then wraps record-and-place in a transaction.
 - `Library.to` types and keys are enforced on every create-into-library path, including sample create.
 - Delete cascade: destroying an item removes placements that pointed at it. Trashing an in-use item warns with its usages.
-- Flatpack library page (list and grid), multi-select picker (standalone and navigable modal, Card tiles), and placements editor (reorder and remove). Reorder uses the same `:upload` permission as add.
+- Flatpack library page (list and grid), multi-select picker (standalone and navigable modal, Card tiles), and placements editor (reorder and remove). Reorder uses the same `:upload` permission as add. Card media uses Flatpack's edge-to-edge slot so thumbnails sit flush in the top of the card.
 - Built-in dummy adapter and `SampleItem` so the gem is usable without Attachable or Video. Hosts must still register an adapter per type they place; unregistered types fall back to `Adapters::Base` for display only.
 - Dummy app seeds a workspace library of samples and a showcase that places them.
 

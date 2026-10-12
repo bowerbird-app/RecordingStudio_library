@@ -49,10 +49,8 @@
           <% placed = @placed_ids.include?(recording.id.to_s) %>
           <label class="flex cursor-pointer flex-col">
             <%= render FlatPack::Card::Component.new(style: :interactive, padding: :sm) do |card| %>
-              <% card.media padding: :none do %>
-                <div class="aspect-4/3 overflow-hidden bg-(--surface-muted-background-color)">
-                  <%= adapter.thumbnail(self) %>
-                </div>
+              <% card.media(aspect_ratio: "4/3", padding: :none) do %>
+                <%= adapter.thumbnail(self) %>
               <% end %>
               <% card.body do %>
                 <div class="flex items-start gap-2">

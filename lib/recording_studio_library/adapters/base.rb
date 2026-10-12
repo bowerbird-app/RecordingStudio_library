@@ -37,7 +37,9 @@ module RecordingStudioLibrary
       end
 
       def thumbnail(view)
-        preview(view)
+        view.tag.div(class: "flex h-full w-full min-h-24 items-center justify-center bg-(--surface-muted-background-color)") do
+          view.tag.span(title.to_s.first.to_s.upcase.presence || "?", class: "text-2xl font-semibold")
+        end
       end
 
       def preview(view)

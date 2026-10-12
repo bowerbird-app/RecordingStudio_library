@@ -8,10 +8,8 @@
       href: href,
       class: "rounded-xl focus:outline-none focus:ring-2 focus:ring-(--brand-color)"
     ) do |card| %>
-      <% card.media padding: :none do %>
-        <div class="aspect-4/3 overflow-hidden bg-(--surface-muted-background-color)">
-          <%= adapter.thumbnail(self) %>
-        </div>
+      <% card.media(aspect_ratio: "4/3", padding: :none) do %>
+        <%= adapter.thumbnail(self) %>
       <% end %>
       <% card.body do %>
         <p class="truncate font-medium"><%= adapter.title %></p>

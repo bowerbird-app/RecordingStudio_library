@@ -52,6 +52,33 @@ class AdaptersTest < Minitest::Test
     assert_equal "Sample", adapter.type_label
   end
 
+  def test_dummy_thumbnail_fills_card_media_without_its_own_radius
+    adapter = dummy_adapter
+    html = adapter.thumbnail(tag_view)
+
+    refute_includes html, "rounded-lg"
+    assert_includes html, "h-full w-full"
+    assert_includes html, "background-color: #e07a5f"
+  end
+
+  def test_dummy_preview_keeps_a_rounded_swatch
+    adapter = dummy_adapter
+    html = adapter.preview(tag_view)
+
+    assert_includes html, "rounded-lg"
+    assert_includes html, "h-12 w-12"
+  end
+
+  def test_base_thumbnail_does_not_reuse_the_rounded_preview_chip
+    adapter = RecordingStudioLibrary::Adapters::Base.new(
+      Recording.new(recordable: Sample.new(title: "Notes"), recordable_type: "Page")
+    )
+    html = adapter.thumbnail(tag_view)
+
+    refute_includes html, "rounded-lg"
+    assert_includes html, "h-full w-full"
+  end
+
   def test_dummy_type_label_falls_back_for_other_recordables
     recording = Recording.new(
       recordable: Sample.new(title: "Stage notes"),
@@ -59,5 +86,50 @@ class AdaptersTest < Minitest::Test
     )
 
     assert_equal "Page", RecordingStudioLibrary::Adapters::Dummy.new(recording).type_label
+  end
+
+  private
+
+  def dummy_adapter
+    RecordingStudioLibrary.adapter_for(
+      Recording.new(
+        recordable: Sample.new(title: "Coral poster", summary: "Warm still", accent: "coral"),
+        recordable_type: "RecordingStudioLibrary::SampleItem"
+      )
+    )
+  end
+
+  def tag_view
+    TagView.new
+  end
+
+  class TagView
+    def tag
+      TagBuilder.new
+    end
+
+    class TagBuilder
+      def div(**attributes)
+        inner = block_given? ? yield : ""
+        %(<div#{html_attributes(attributes)}>#{inner}</div>)
+      end
+
+      def span(*args, **attributes)
+        content = args.first.to_s
+        %(<span#{html_attributes(attributes)}>#{content}</span>)
+      end
+
+      private
+
+      def html_attributes(attributes)
+        attributes.filter_map do |key, value|
+          name = key.to_s.tr("_", "-")
+          serialized = value.is_a?(Hash) ? value.map { |nested, nested_value| "#{nested}: #{nested_value}" }.join("; ") : value
+          next if serialized.blank?
+
+          %( #{name}="#{serialized}")
+        end.join
+      end
+    end
   end
 end

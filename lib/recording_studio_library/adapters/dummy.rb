@@ -37,7 +37,7 @@ module RecordingStudioLibrary
       end
 
       def thumbnail(view)
-        color_swatch(view, size_class: "h-full w-full min-h-24", text_class: "text-2xl")
+        color_swatch(view, size_class: "h-full w-full min-h-24", text_class: "text-2xl", rounded: false)
       end
 
       def full_view(view)
@@ -101,9 +101,10 @@ module RecordingStudioLibrary
         "#{object_name}[#{attribute}]"
       end
 
-      def color_swatch(view, size_class:, text_class:)
+      def color_swatch(view, size_class:, text_class:, rounded: true)
+        rounding = rounded ? "rounded-lg" : nil
         view.tag.div(
-          class: "flex #{size_class} items-center justify-center rounded-lg text-white",
+          class: ["flex", size_class, "items-center", "justify-center", rounding, "text-white"].compact.join(" "),
           style: "background-color: #{accent_hex};",
           aria: { hidden: true }
         ) do
