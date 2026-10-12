@@ -604,6 +604,125 @@ class PlacementsTest < Minitest::Test
     end
   end
 
+  def test_update_placements_refuses_without_holder_revise
+    parent, item, place_one = update_placement_fixtures
+    RecordingStudioLibrary::Authorization.define_singleton_method(:authorize_placement!) do |**|
+      raise RecordingStudioLibrary::Authorization::NotAuthorizedError, "holder revise refused"
+    end
+
+    RecordingStudioLibrary::Placements.stub(:resolve, resolved_for(place_one, item)) do
+      result = RecordingStudioLibrary::Services::UpdatePlacements.call(
+        parent_recording: parent,
+        items: { "place-1" => { title: "Hacked" } },
+        actor: :ada
+      )
+
+      refute result.success?
+      assert_match(/holder revise refused/, result.error)
+      assert_nil item.recordable.assigned
+    end
+  end
+
+  def test_update_placements_refuses_an_item_not_placed_on_the_holder
+    parent, item, _place_one = update_placement_fixtures
+
+    RecordingStudioLibrary::Placements.stub(:resolve, []) do
+      result = RecordingStudioLibrary::Services::UpdatePlacements.call(
+        parent_recording: parent,
+        items: { "item-1" => { title: "Hacked" } },
+        actor: :ada
+      )
+
+      refute result.success?
+      assert_match(/not on this page/, result.error)
+      assert_nil item.recordable.assigned
+    end
+  end
+
+  def test_update_placements_refuses_another_holders_placement_in_ordered_ids
+    parent, item, place_one = update_placement_fixtures
+
+    RecordingStudioLibrary::Placements.stub(:resolve, resolved_for(place_one, item)) do
+      result = RecordingStudioLibrary::Services::UpdatePlacements.call(
+        parent_recording: parent,
+        items: { "place-1" => { title: "Lobby still" } },
+        ordered_recording_ids: %w[place-foreign place-1],
+        actor: :ada
+      )
+
+      refute result.success?
+      assert_match(/not on this page/, result.error)
+      assert_nil parent.reordered_with
+    end
+  end
+
+  def test_update_placements_drops_non_permitted_keys_before_the_adapter
+    parent, item, place_one = update_placement_fixtures
+    leaky = Class.new(RecordingStudioLibrary::Adapters::Base) do
+      def permitted_item_keys
+        %i[title]
+      end
+
+      def update_item!(attrs, actor: nil)
+        recordable.assign_attributes(attrs)
+        recordable.save! if recordable.respond_to?(:save!)
+        recordable
+      end
+    end
+    RecordingStudioLibrary.register_adapter("RecordingStudioLibrary::SampleItem", leaky)
+
+    RecordingStudioLibrary::Placements.stub(:resolve, resolved_for(place_one, item)) do
+      result = RecordingStudioLibrary::Services::UpdatePlacements.call(
+        parent_recording: parent,
+        items: { "place-1" => { title: "Lobby still", extra: "ignored", summary: "nope" } },
+        actor: :ada
+      )
+
+      assert result.success?
+      assert_equal({ title: "Lobby still" }, item.recordable.assigned)
+    end
+  ensure
+    RecordingStudioLibrary.register_adapter("RecordingStudioLibrary::SampleItem", RecordingStudioLibrary::Adapters::Dummy)
+  end
+
+  def test_update_placements_refuses_without_library_revise
+    parent, item, place_one = update_placement_fixtures
+    RecordingStudioLibrary::Authorization.define_singleton_method(:authorize_library!) do |**|
+      raise RecordingStudioLibrary::Authorization::NotAuthorizedError, "library revise refused"
+    end
+
+    RecordingStudioLibrary::Placements.stub(:resolve, resolved_for(place_one, item)) do
+      result = RecordingStudioLibrary::Services::UpdatePlacements.call(
+        parent_recording: parent,
+        items: { "place-1" => { title: "Hacked" } },
+        actor: :ada
+      )
+
+      refute result.success?
+      assert_match(/library revise refused/, result.error)
+      assert_nil item.recordable.assigned
+    end
+  end
+
+  def test_reorder_authorizes_revise
+    place_one = Recording.new(id: "place-1", recordable_type: "RecordingStudioLibrary::Placement")
+    parent = Recording.new(id: "gallery-1", recordable_type: "Showcase", placed: [place_one])
+    seen = nil
+    RecordingStudioLibrary::Authorization.define_singleton_method(:authorize_placement!) do |action:, **|
+      seen = action
+      true
+    end
+
+    result = RecordingStudioLibrary::Services::ReorderPlacements.call(
+      parent_recording: parent,
+      ordered_recording_ids: %w[place-1],
+      actor: :ada
+    )
+
+    assert result.success?
+    assert_equal :revise, seen
+  end
+
   def test_purge_hook_removes_placements_for_a_library
     recording = Object.new
     recording.extend(RecordingStudioLibrary::Purge)
@@ -698,6 +817,38 @@ class PlacementsTest < Minitest::Test
     else
       Array(first)
     end
+  end
+
+  def update_placement_fixtures
+    library = Recording.new(id: "lib-1", recordable_type: "RecordingStudioLibrary::Library")
+    item = Recording.new(
+      id: "item-1",
+      recordable_type: "RecordingStudioLibrary::SampleItem",
+      parent_recording: library,
+      recordable: Item.new(id: "snap-1", title: "Hero")
+    )
+    item.recordable.define_singleton_method(:assign_attributes) { |attrs| @assigned = attrs }
+    item.recordable.define_singleton_method(:save!) { @saved = true }
+    item.recordable.define_singleton_method(:assigned) { @assigned }
+    item.recordable.define_singleton_method(:saved) { @saved }
+    place_one = Recording.new(
+      id: "place-1",
+      recordable_type: "RecordingStudioLibrary::Placement",
+      recordable: PlacementRecordable.new(item_recording_id: "item-1")
+    )
+    parent = Recording.new(id: "gallery-1", recordable_type: "Showcase", placed: [place_one])
+    [parent, item, place_one]
+  end
+
+  def resolved_for(place, item)
+    [
+      RecordingStudioLibrary::Placements::Resolved.new(
+        placement_recording: place,
+        item_recording: item,
+        item: item.recordable,
+        adapter: RecordingStudioLibrary.adapter_for(item)
+      )
+    ]
   end
 
   def place_new_fixtures

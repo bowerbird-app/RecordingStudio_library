@@ -156,6 +156,8 @@ class RecordingStudioLibraryTest < Minitest::Test
     helper = File.read(File.expand_path("../app/helpers/recording_studio_library/application_helper.rb", __dir__))
     assert_includes helper, "def library_screen_page_nav"
     assert_includes helper, "recording_studio_page_nav"
+    assert_includes helper, "def library_host_page_nav_available?"
+    assert_includes helper, "FlatPack::PageNav::Component"
   end
 
   def test_find_library_is_find_only

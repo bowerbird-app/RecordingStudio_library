@@ -62,9 +62,7 @@ module RecordingStudioLibrary
       ensure_library_flatpack_theme
       back_label ||= t("recording_studio.library.navigation.back")
       anchor_label ||= t("recording_studio.library.navigation.return_to_source")
-      if library_uses_host_page_nav?
-        return unless respond_to?(:recording_studio_page_nav)
-
+      if library_host_page_nav_available?
         return fill_host_library_page_nav(title:, back_url:, back_label:, anchor_url:, anchor_label:)
       end
 
@@ -79,6 +77,10 @@ module RecordingStudioLibrary
     def library_uses_host_page_nav?
       configured = RecordingStudioLibrary.configuration.layout
       configured.blank? || configured.to_sym == :default
+    end
+
+    def library_host_page_nav_available?
+      library_uses_host_page_nav? && respond_to?(:recording_studio_page_nav)
     end
 
     def library_engine_routes

@@ -41,7 +41,15 @@ module RecordingStudioLibrary
       def apply_item_updates!(parent, resolved_actor)
         item_updates.each do |id, attrs|
           item = item_for(parent, id, resolved_actor)
-          RecordingStudioLibrary.adapter_for(item).update_item!(attrs, actor: resolved_actor)
+          library = library_for_item(item)
+          deny!(:item_not_in_library) unless live_library?(library)
+          RecordingStudioLibrary::Authorization.authorize_library!(
+            action: :revise,
+            actor: resolved_actor,
+            recording: library
+          )
+          adapter = RecordingStudioLibrary.adapter_for(item)
+          adapter.update_item!(permitted_attrs_for(adapter, attrs), actor: resolved_actor)
         end
       end
 
@@ -89,6 +97,16 @@ module RecordingStudioLibrary
         deny!(:placement_not_on_page) if match.blank?
 
         match.item_recording
+      end
+
+      def permitted_attrs_for(adapter, attrs)
+        keys = Array(adapter.permitted_item_keys).map(&:to_s)
+        hash = attrs.respond_to?(:to_unsafe_h) ? attrs.to_unsafe_h : attrs.to_h
+        hash.each_with_object({}) do |(key, value), memo|
+          next unless keys.include?(key.to_s)
+
+          memo[key.to_sym] = value
+        end
       end
     end
   end

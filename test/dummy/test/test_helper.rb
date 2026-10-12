@@ -34,6 +34,14 @@ module LibraryTestHelpers
       original.call(*args, **kwargs, &block)
     end
   end
+
+  def with_replaced_instance_method(mod, name, replacement)
+    original = mod.instance_method(name)
+    mod.define_method(name, &replacement)
+    yield
+  ensure
+    mod.define_method(name, original)
+  end
 end
 
 class ActiveSupport::TestCase

@@ -18,7 +18,11 @@ module RecordingStudioLibrary
         actor: current_library_actor,
         recording: @recording
       )
-      @can_reorder = @can_add && @recording.respond_to?(:recording_studio_orderable_reorder!)
+      @can_reorder = RecordingStudioLibrary::Authorization.placement_allowed?(
+        action: :revise,
+        actor: current_library_actor,
+        recording: @recording
+      ) && @recording.respond_to?(:recording_studio_orderable_reorder!)
       @picker_modal_id = "library-picker-#{@recording.id}"
     end
 
@@ -68,7 +72,7 @@ module RecordingStudioLibrary
 
     def reorder
       recording = find_recording
-      authorize!(:upload, recording)
+      authorize!(:revise, recording)
       result = Services::ReorderPlacements.call(
         parent_recording: recording,
         ordered_recording_ids: params[:ordered_recording_ids],

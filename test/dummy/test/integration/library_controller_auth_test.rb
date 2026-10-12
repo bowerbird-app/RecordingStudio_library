@@ -211,6 +211,125 @@ class LibraryControllerAuthTest < ActionDispatch::IntegrationTest
     refute_includes @response.body, "recording-studio-root-switchable--root-switch-dropdown"
   end
 
+  test "library page falls back to engine page nav when the host has none" do
+    sign_in @owner
+    Current.actor = @owner
+
+    with_replaced_instance_method(RecordingStudioLibrary::ApplicationHelper, :library_host_page_nav_available?, -> { false }) do
+      get recording_studio_library.library_path(@library)
+
+      assert_response :success
+      assert_match(/Return to source page/, @response.body)
+    end
+  end
+
+  test "viewer cannot patch placements without holder revise" do
+    sign_in @viewer
+    Current.actor = @viewer
+
+    patch recording_studio_library.recording_placements_path(@holder), params: {
+      items: { @item.id => { title: "Hacked still" } }
+    }
+
+    assert_response :redirect
+    assert flash[:alert].present?
+    @item.reload
+    assert_equal "Auth still", @item.recordable.title
+  end
+
+  test "patch refuses an item that is not placed on the holder" do
+    other = RecordingStudio.record!(
+      action: "created",
+      recordable: RecordingStudioLibrary::SampleItem.new(title: "Unplaced still", accent: "sage"),
+      root_recording: @root,
+      parent_recording: @library,
+      actor: @owner
+    ).recording
+    sign_in @owner
+    Current.actor = @owner
+
+    patch recording_studio_library.recording_placements_path(@holder), params: {
+      items: { other.id => { title: "Stolen still" } }
+    }
+
+    assert_redirected_to recording_studio_library.recording_placements_path(@holder)
+    assert_equal I18n.t("recording_studio.library.errors.placement_not_on_page"), flash[:alert]
+    other.reload
+    assert_equal "Unplaced still", other.recordable.title
+  end
+
+  test "patch refuses another holders placement in ordered ids" do
+    other_showcase = Showcase.create!(title: "Other auth gallery")
+    other_holder = RecordingStudio.record!(
+      action: "created",
+      recordable: other_showcase,
+      root_recording: @root,
+      parent_recording: @root,
+      actor: @owner
+    ).recording
+    foreign = RecordingStudioLibrary.place!(other_holder, @item, actor: @owner)
+    sign_in @owner
+    Current.actor = @owner
+
+    patch recording_studio_library.recording_placements_path(@holder), params: {
+      items: { @item.id => { title: "Renamed still" } },
+      ordered_recording_ids: [foreign.id, @placement.id]
+    }
+
+    assert_redirected_to recording_studio_library.recording_placements_path(@holder)
+    assert_equal I18n.t("recording_studio.library.errors.placement_not_on_page"), flash[:alert]
+    @item.reload
+    assert_equal "Auth still", @item.recordable.title
+  end
+
+  test "patch drops non-permitted item keys" do
+    sign_in @owner
+    Current.actor = @owner
+
+    patch recording_studio_library.recording_placements_path(@holder), params: {
+      items: { @item.id => { title: "Permitted still", extra: "ignored", id: "forged" } }
+    }
+
+    assert_redirected_to recording_studio_library.recording_placements_path(@holder)
+    assert_equal I18n.t("recording_studio.library.flashes.updated"), flash[:notice]
+    @item.reload
+    assert_equal "Permitted still", @item.recordable.title
+    refute_equal "forged", @item.recordable.id.to_s
+  end
+
+  test "editor cannot patch a library item without library revise" do
+    editor = User.find_or_create_by!(email: "page-editor-#{SecureRandom.hex(4)}@example.com") do |user|
+      user.password = "Password"
+      user.password_confirmation = "Password"
+    end
+    grant_role!(editor, @holder, :edit, manager: @owner)
+    grant_role!(editor, @item, :view, manager: @owner)
+    grant_role!(editor, @library, :view, manager: @owner)
+
+    sign_in editor
+    Current.actor = editor
+
+    assert RecordingStudioLibrary::Authorization.placement_allowed?(
+      action: :revise,
+      actor: editor,
+      recording: @holder
+    )
+    refute RecordingStudioLibrary::Authorization.library_allowed?(
+      action: :revise,
+      actor: editor,
+      recording: @library
+    )
+
+    patch recording_studio_library.recording_placements_path(@holder), params: {
+      items: { @item.id => { title: "Hacked still" } }
+    }
+
+    assert_redirected_to recording_studio_library.recording_placements_path(@holder)
+    assert flash[:alert].present?
+    @item.reload
+    assert_equal "Auth still", @item.recordable.title
+  end
+
   private
 
   def placement_count
