@@ -30,6 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Docs
 - Hosts must call `library_for` before a library page or picker can find a library.
 
+### Upgrade notes
+- **Reorder now requires `:revise` on the holder, not `:upload`.** Drag handles on the placements editor and `PATCH /recordings/:recording_id/placements/reorder` authorize `:revise`. Add still uses `:upload`. Default `auth_roles` map both to `:edit`, so unchanged hosts are unaffected. Hosts that set custom `auth_roles` (for example `:upload` → `:edit` and `:revise` → `:admin`) must grant `:revise` to anyone who should reorder, or drag-reorder and the reorder route will be refused.
+
 ### Placements PATCH API (for Attachable)
 
 `PATCH recording_placements_path(holder)` (same URL as index/create).
