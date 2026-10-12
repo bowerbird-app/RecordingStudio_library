@@ -118,8 +118,9 @@ class LibraryFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
     refute_includes @response.body, "Sign out"
     refute_includes @response.body, "recording-studio-root-switchable--root-switch-dropdown"
-    refute_includes @response.body, "Add sample"
+    # Button label is type-only ("Sample"); empty-state copy may say "Add samples".
     assert_select "a[href*='sample_items/new']", text: /\A\s*Sample\s*\z/
+    assert_select "a[href*='sample_items/new']", text: /Add sample/, count: 0
   end
 
   test "picker standalone and modal screens render" do
