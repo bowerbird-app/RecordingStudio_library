@@ -40,7 +40,7 @@ include RecordingStudio::Capabilities::Placeable.to(
 
 `Library.to` on a parent means that parent can hold libraries of those item types/keys. Those lists are enforced whenever an item is recorded into a library (`place_new!`, sample create, `RecordLibraryItem`). Empty lists mean unrestricted.
 
-`Placeable.to` on a holder means that holder can hold placements of those types from those libraries. Reorder and add both use the `:upload` role, matching the placements editor.
+`Placeable.to` on a holder means that holder can hold placements of those types from those libraries. Add uses the `:upload` role. Reorder and collection PATCH use `:revise` on the holder. Item field saves also require `:revise` on the item's library.
 
 ## Adapter registry
 
@@ -75,7 +75,7 @@ RecordingStudioLibrary.usages(item)
 
 Authorization fails closed when Accessible is not loaded and no `authorize_with` adapter is set.
 
-Collection editors `PATCH recording_placements_path(holder)` with `items` (item or placement id → adapter fields) and optional `ordered_recording_ids` / `moving_recording_id` + `target_position`. Library saves permitted fields through the item adapter, then calls `reorder!`.
+Collection editors `PATCH recording_placements_path(holder)` with `items` (item or placement id → adapter fields) and optional `ordered_recording_ids` / `moving_recording_id` + `target_position`. Library authorizes `:revise` on the holder and on each item's library, filters attributes with the adapter's `permitted_item_keys`, saves through the item adapter, then calls `reorder!`. Foreign placement ids and items that are not on the holder are refused.
 
 Trashing an in-use item warns with its usages. Deleting the item removes its placements. Trashable and Orderable APIs are reused as-is.
 
@@ -85,9 +85,9 @@ All screens are Flatpack ViewComponents.
 
 - Library page: list and grid, mountable, `library_path_for(parent_or_library)`.
 - Multi-select picker with search and type filter. Lists **library items only**. Works standalone and as a Flatpack navigable modal (`flat_pack_modal_screen`, `data-fp-nav`). Hosts must pin `@hotwired/turbo-rails` so the modal's turbo-frame can load. Tiles are Flatpack Cards wrapping a checkbox.
-- Placements editor: Orderable list with a drag handle, remove, one "Add from library" button (picker modal), and Upload (adapter `new_item_path`). Reorder uses the same `:upload` permission as add. Collection PATCH uses `:revise`.
+- Placements editor: Orderable list with a drag handle, remove, one "Add from library" button (picker modal), and Upload (adapter `new_item_path`). Drag-reorder and collection PATCH both use `:revise` on the holder. Add still uses `:upload`.
 
-When the host uses Recording Studio's default layout, engine screens fill that layout's PageNav slots instead of rendering a second PageNav, and they load `flat_pack/application` plus the rounded theme on `body`.
+When the host uses Recording Studio's default layout and exposes `recording_studio_page_nav`, engine screens fill that layout's PageNav slots instead of rendering a second PageNav, and they load `flat_pack/application` plus the rounded theme on `body`. If that helper is missing, Library renders its own Flatpack PageNav so the back control is not lost.
 
 Staff admin UI belongs in Recording Studio Admin, not here.
 

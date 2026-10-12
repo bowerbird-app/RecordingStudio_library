@@ -11,7 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `place!` and `resolve` refuse items that are not in a live library. Placing a same-workspace item from outside a library is no longer allowed.
 - Authorization fails closed when Accessible is not loaded and no `authorize_with` adapter is set (`visible?` and `allowed?`).
 - `current_library_actor` falls through a nil `Current.actor` to `current_user`.
-- Library screens on the host default layout no longer render a second back control. They load `flat_pack/application` and the rounded theme.
+- Library screens on the host default layout no longer render a second back control. They load `flat_pack/application` and the rounded theme. If the host has no `recording_studio_page_nav`, Library renders its own PageNav instead of showing none.
+- `update_placements!` requires `:revise` on the item's library before saving shared item fields, and filters attributes with `permitted_item_keys` before calling the adapter.
+- Reorder (drag handle and `PATCH .../placements/reorder`) uses `:revise` on the holder, matching collection PATCH. Add still uses `:upload`.
 
 ### Added
 - `PATCH /recordings/:recording_id/placements` and `RecordingStudioLibrary.update_placements!` save submitted item fields through the item adapter, then reorder. See the API note below.
@@ -22,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Tests
 - Request test: an editor who can place on the holder cannot POST a real hidden item's id under an Accessible restriction.
 - Renamed the Placeable item-type allow-list test.
+- Refusal tests for placements PATCH: no `:revise` on the holder; an item not placed on this holder; another holder's placement in `ordered_recording_ids`; non-permitted keys; no `:revise` on the item's library.
+- PageNav: host default layout keeps a single back control; missing `recording_studio_page_nav` falls back to Library's PageNav.
 
 ### Docs
 - Hosts must call `library_for` before a library page or picker can find a library.
@@ -43,9 +47,9 @@ RecordingStudioLibrary.update_placements!(
 )
 ```
 
-- Authorize `:revise` on the holder.
-- `items` keys may be a placement recording id or the placed item recording id. Unknown keys are ignored; the adapter's `permitted_item_keys` is the allow-list (`title` on Base, `title` / `summary` / `accent` on Dummy). Attachable should implement `permitted_item_keys` as `%i[caption credit alt_text name description]` (or whichever columns it edits).
-- After item saves, Library calls `reorder!` when `ordered_recording_ids` or `moving_recording_id` is present.
+- Authorize `:revise` on the holder, then `:revise` on each item's library before `update_item!`. Editing one page cannot rename a shared library item unless the actor can revise that library.
+- `items` keys may be a placement recording id or the placed item recording id. Unknown keys and items that are not on the holder are refused. Library filters attributes with the adapter's `permitted_item_keys` before calling `update_item!` (`title` on Base, `title` / `summary` / `accent` on Dummy). Attachable should implement `permitted_item_keys` as `%i[caption credit alt_text name description]` (or whichever columns it edits).
+- After item saves, Library calls `reorder!` when `ordered_recording_ids` or `moving_recording_id` is present. Foreign placement ids are refused. Reorder itself also authorizes `:revise` on the holder.
 - JSON/XHR returns `{ ok: true|false }`.
 - Hosts should not implement a parallel update. Register adapter paths and keys; PATCH this route.
 
