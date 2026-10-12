@@ -87,7 +87,7 @@ class PlacementsTest < Minitest::Test
     assert_equal [result.value, :ada], parent.appended
   end
 
-  def test_place_accepts_a_same_root_item_outside_a_library
+  def test_place_refuses_an_item_outside_a_library
     root = Recording.new(id: "root-1", recordable_type: "Workspace")
     page = Recording.new(id: "page-1", recordable_type: "Page", parent_recording_id: "root-1", root_recording_id: "root-1")
     parent = Recording.new(id: "gallery-1", recordable_type: "Showcase", root_recording_id: "root-1", root_recording: root)
@@ -106,8 +106,38 @@ class PlacementsTest < Minitest::Test
       actor: :ada
     )
 
-    assert result.success?
-    assert_equal "item-1", result.value.recordable.item_recording_id
+    assert result.failure?
+    assert_match(/not in a live library/, result.error)
+    assert_nil parent.placed
+  end
+
+  def test_place_refuses_an_item_from_a_trashed_library
+    root = Recording.new(id: "root-1", recordable_type: "Workspace")
+    library = Recording.new(
+      id: "lib-1",
+      recordable_type: "RecordingStudioLibrary::Library",
+      parent_recording_id: "root-1",
+      root_recording_id: "root-1",
+      trashed_at: Time.now
+    )
+    parent = Recording.new(id: "gallery-1", recordable_type: "Showcase", root_recording_id: "root-1", root_recording: root)
+    item = Recording.new(
+      id: "item-1",
+      recordable_type: "RecordingStudioLibrary::SampleItem",
+      parent_recording_id: "lib-1",
+      parent_recording: library,
+      root_recording_id: "root-1",
+      recordable: Item.new(id: "snap-1", title: "Hero")
+    )
+
+    result = RecordingStudioLibrary::Services::Place.call(
+      parent_recording: parent,
+      item_recording: item,
+      actor: :ada
+    )
+
+    assert result.failure?
+    assert_match(/not in a live library/, result.error)
   end
 
   def test_place_refuses_another_workspace
@@ -137,10 +167,12 @@ class PlacementsTest < Minitest::Test
 
   def test_resolve_skips_trashed_items_and_keeps_the_placement
     root = Recording.new(id: "root-1", recordable_type: "Workspace")
+    library = Recording.new(id: "lib-1", recordable_type: "RecordingStudioLibrary::Library")
     live_item = Recording.new(
       id: "item-live",
       recordable_type: "RecordingStudioLibrary::SampleItem",
       parent_recording_id: "lib-1",
+      parent_recording: library,
       root_recording_id: "root-1",
       recordable: Item.new(id: "snap-live", title: "Live")
     )
@@ -148,6 +180,7 @@ class PlacementsTest < Minitest::Test
       id: "item-trash",
       recordable_type: "RecordingStudioLibrary::SampleItem",
       parent_recording_id: "lib-1",
+      parent_recording: library,
       root_recording_id: "root-1",
       trashed_at: Time.now,
       recordable: Item.new(id: "snap-trash", title: "Trashed")
@@ -345,11 +378,13 @@ class PlacementsTest < Minitest::Test
 
   def test_place_refuses_items_the_actor_cannot_see
     root = Recording.new(id: "root-1", recordable_type: "Workspace")
+    library = Recording.new(id: "lib-1", recordable_type: "RecordingStudioLibrary::Library", root_recording_id: "root-1")
     parent = Recording.new(id: "gallery-1", recordable_type: "Showcase", root_recording_id: "root-1", root_recording: root)
     item = Recording.new(
       id: "item-1",
       recordable_type: "RecordingStudioLibrary::SampleItem",
-      parent_recording_id: "root-1",
+      parent_recording_id: "lib-1",
+      parent_recording: library,
       root_recording_id: "root-1",
       recordable: Item.new(id: "snap-1", title: "Hidden")
     )
@@ -368,9 +403,12 @@ class PlacementsTest < Minitest::Test
 
   def test_resolve_asks_accessible_for_anonymous_actors
     root = Recording.new(id: "root-1", recordable_type: "Workspace")
+    library = Recording.new(id: "lib-1", recordable_type: "RecordingStudioLibrary::Library")
     item = Recording.new(
       id: "item-1",
       recordable_type: "RecordingStudioLibrary::SampleItem",
+      parent_recording: library,
+      parent_recording_id: "lib-1",
       root_recording_id: "root-1",
       recordable: Item.new(id: "snap-1", title: "Hero")
     )
@@ -387,8 +425,8 @@ class PlacementsTest < Minitest::Test
       placed: [placement]
     )
     seen = []
-    RecordingStudioLibrary::Authorization.define_singleton_method(:visible?) do |actor:, recording:|
-      seen << [actor, recording.id]
+    RecordingStudioLibrary::Authorization.define_singleton_method(:visible?) do |actor:, recording:, unfiltered: false|
+      seen << [actor, recording.id, unfiltered]
       false
     end
 
@@ -396,7 +434,7 @@ class PlacementsTest < Minitest::Test
       resolved = RecordingStudioLibrary::Placements.resolve(parent, actor: nil)
 
       assert_empty resolved
-      assert_equal [[nil, "item-1"]], seen
+      assert_equal [[nil, "item-1", false]], seen
     end
   end
 
@@ -450,6 +488,120 @@ class PlacementsTest < Minitest::Test
     end
 
     assert_same recording, captured
+  end
+
+  def test_resolve_skips_items_outside_a_live_library
+    root = Recording.new(id: "root-1", recordable_type: "Workspace")
+    page = Recording.new(id: "page-1", recordable_type: "Page")
+    item = Recording.new(
+      id: "item-1",
+      recordable_type: "Page",
+      parent_recording: page,
+      parent_recording_id: "page-1",
+      root_recording_id: "root-1",
+      recordable: Item.new(id: "note-1", title: "Stage notes")
+    )
+    placement = Recording.new(
+      id: "place-1",
+      recordable_type: "RecordingStudioLibrary::Placement",
+      recordable: PlacementRecordable.new(item_recording_id: "item-1")
+    )
+    parent = Recording.new(
+      id: "gallery-1",
+      recordable_type: "Showcase",
+      root_recording_id: "root-1",
+      root_recording: root,
+      placed: [placement]
+    )
+
+    stub_recordings("item-1" => item) do
+      resolved = RecordingStudioLibrary::Placements.resolve(parent)
+
+      assert_empty resolved
+    end
+  end
+
+  def test_resolve_unfiltered_skips_accessible_for_a_single_call
+    root = Recording.new(id: "root-1", recordable_type: "Workspace")
+    library = Recording.new(id: "lib-1", recordable_type: "RecordingStudioLibrary::Library")
+    item = Recording.new(
+      id: "item-1",
+      recordable_type: "RecordingStudioLibrary::SampleItem",
+      parent_recording: library,
+      parent_recording_id: "lib-1",
+      root_recording_id: "root-1",
+      recordable: Item.new(id: "snap-1", title: "Hero")
+    )
+    placement = Recording.new(
+      id: "place-1",
+      recordable_type: "RecordingStudioLibrary::Placement",
+      recordable: PlacementRecordable.new(item_recording_id: "item-1")
+    )
+    parent = Recording.new(
+      id: "gallery-1",
+      recordable_type: "Showcase",
+      root_recording_id: "root-1",
+      root_recording: root,
+      placed: [placement]
+    )
+    seen = []
+    RecordingStudioLibrary::Authorization.define_singleton_method(:visible?) do |actor:, recording:, unfiltered: false|
+      seen << [actor, recording.id, unfiltered]
+      unfiltered
+    end
+
+    stub_recordings("item-1" => item) do
+      hidden = RecordingStudioLibrary::Placements.resolve(parent, actor: nil)
+      visible = RecordingStudioLibrary::Placements.resolve(parent, actor: nil, unfiltered: true)
+
+      assert_empty hidden
+      assert_equal 1, visible.size
+      assert_equal [nil, "item-1", false], seen.first
+      assert_equal [nil, "item-1", true], seen.last
+    end
+  end
+
+  def test_update_placements_saves_adapter_fields_then_reorders
+    library = Recording.new(id: "lib-1", recordable_type: "RecordingStudioLibrary::Library")
+    item = Recording.new(
+      id: "item-1",
+      recordable_type: "RecordingStudioLibrary::SampleItem",
+      parent_recording: library,
+      recordable: Item.new(id: "snap-1", title: "Hero")
+    )
+    place_one = Recording.new(
+      id: "place-1",
+      recordable_type: "RecordingStudioLibrary::Placement",
+      recordable: PlacementRecordable.new(item_recording_id: "item-1")
+    )
+    place_two = Recording.new(id: "place-2", recordable_type: "RecordingStudioLibrary::Placement")
+    parent = Recording.new(id: "gallery-1", recordable_type: "Showcase", placed: [place_one, place_two])
+    item.recordable.define_singleton_method(:assign_attributes) { |attrs| @assigned = attrs }
+    item.recordable.define_singleton_method(:save!) { @saved = true }
+    item.recordable.define_singleton_method(:assigned) { @assigned }
+    item.recordable.define_singleton_method(:saved) { @saved }
+
+    resolved = [
+      RecordingStudioLibrary::Placements::Resolved.new(
+        placement_recording: place_one,
+        item_recording: item,
+        item: item.recordable,
+        adapter: RecordingStudioLibrary.adapter_for(item)
+      )
+    ]
+    RecordingStudioLibrary::Placements.stub(:resolve, resolved) do
+      result = RecordingStudioLibrary::Services::UpdatePlacements.call(
+        parent_recording: parent,
+        items: { "place-1" => { title: "Lobby still", extra: "ignored" } },
+        ordered_recording_ids: %w[place-2 place-1],
+        actor: :ada
+      )
+
+      assert result.success?
+      assert_equal({ title: "Lobby still" }, item.recordable.assigned)
+      assert item.recordable.saved
+      assert_equal [%w[place-2 place-1], :ada], parent.reordered_with
+    end
   end
 
   def test_purge_hook_removes_placements_for_a_library

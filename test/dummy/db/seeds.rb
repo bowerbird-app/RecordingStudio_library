@@ -45,7 +45,7 @@ begin
 
   folder_recording = find_or_record_child.call(folder, root_recording, root_recording)
   find_or_record_child.call(page, root_recording, folder_recording)
-  outside_page_recording = find_or_record_child.call(outside_page, root_recording, root_recording)
+  find_or_record_child.call(outside_page, root_recording, root_recording)
   showcase_recording = find_or_record_child.call(showcase, root_recording, root_recording)
 
   library = RecordingStudioLibrary.library_for(root_recording, actor: user)
@@ -78,7 +78,6 @@ begin
     sample_recordings.first(3).each do |item|
       RecordingStudioLibrary.place!(showcase_recording, item, actor: user)
     end
-    RecordingStudioLibrary.place!(showcase_recording, outside_page_recording, actor: user)
   end
 ensure
   Current.actor = previous_actor

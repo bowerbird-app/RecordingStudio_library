@@ -58,8 +58,8 @@ module RecordingStudioLibrary
       )
     end
 
-    def placements(holder, include_trashed: false, actor: nil)
-      resolve(holder, include_trashed: include_trashed, actor: actor)
+    def placements(holder, include_trashed: false, actor: nil, unfiltered: false)
+      resolve(holder, include_trashed: include_trashed, actor: actor, unfiltered: unfiltered)
     end
 
     def reorder!(holder, ids = nil, actor: nil, moving_recording_id: nil, target_position: nil)
@@ -75,6 +75,20 @@ module RecordingStudioLibrary
       )
     end
 
+    def update_placements!(holder, items: {}, actor: nil, ordered_recording_ids: nil, moving_recording_id: nil, target_position: nil)
+      unwrap!(
+        Services::UpdatePlacements.call(
+          parent_recording: holder,
+          items: items,
+          ordered_recording_ids: ordered_recording_ids,
+          moving_recording_id: moving_recording_id,
+          target_position: target_position,
+          actor: actor
+        ),
+        fallback: "Could not update placed items"
+      )
+    end
+
     def remove!(placement, holder: nil, actor: nil)
       unwrap!(
         Services::RemovePlacement.call(
@@ -86,8 +100,8 @@ module RecordingStudioLibrary
       )
     end
 
-    def resolve(holder, include_trashed: false, actor: nil)
-      Placements.resolve(holder, include_trashed: include_trashed, actor: actor)
+    def resolve(holder, include_trashed: false, actor: nil, unfiltered: false)
+      Placements.resolve(holder, include_trashed: include_trashed, actor: actor, unfiltered: unfiltered)
     end
 
     def usages(item)

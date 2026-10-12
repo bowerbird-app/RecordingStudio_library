@@ -35,6 +35,9 @@ class LibraryGuardTest < ActiveSupport::TestCase
     hidden = RecordingStudioLibrary.resolve(@holder, actor: nil)
     refute hidden.any? { |entry| entry.item_recording.id == item.id }
 
+    per_call = RecordingStudioLibrary.resolve(@holder, actor: nil, unfiltered: true)
+    assert per_call.any? { |entry| entry.item_recording.id == item.id }
+
     RecordingStudioLibrary.configuration.unfiltered_access = true
     visible = RecordingStudioLibrary.resolve(@holder, actor: nil)
     assert visible.any? { |entry| entry.item_recording.id == item.id }
@@ -93,7 +96,7 @@ class LibraryGuardTest < ActiveSupport::TestCase
     assert_match(/not available/, error.message)
   end
 
-  test "place refuses a holder type that is not on Placeable.to" do
+  test "place refuses an item type that is not on Placeable.to" do
     folder = Folder.create!(name: "Stage folder #{SecureRandom.hex(4)}")
     folder_recording = RecordingStudio.record!(
       action: "created",
@@ -107,6 +110,22 @@ class LibraryGuardTest < ActiveSupport::TestCase
       RecordingStudioLibrary.place!(@holder, folder_recording, actor: @user)
     end
     assert_match(/cannot be placed/, error.message)
+  end
+
+  test "place refuses an item that is not in a live library" do
+    page = Page.create!(title: "Outside #{SecureRandom.hex(4)}")
+    outside = RecordingStudio.record!(
+      action: "created",
+      recordable: page,
+      root_recording: @root,
+      parent_recording: @root,
+      actor: @user
+    ).recording
+
+    error = assert_raises(ArgumentError) do
+      RecordingStudioLibrary.place!(@holder, outside, actor: @user)
+    end
+    assert_match(/not in a live library/, error.message)
   end
 
   test "place_new refuses an unregistered type and does not leave an item behind" do

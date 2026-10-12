@@ -5,6 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-10-12
+
+### Fixed
+- `place!` and `resolve` refuse items that are not in a live library. Placing a same-workspace item from outside a library is no longer allowed.
+- Authorization fails closed when Accessible is not loaded and no `authorize_with` adapter is set (`visible?` and `allowed?`).
+- `current_library_actor` falls through a nil `Current.actor` to `current_user`.
+- Library screens on the host default layout no longer render a second back control. They load `flat_pack/application` and the rounded theme.
+
+### Added
+- `PATCH /recordings/:recording_id/placements` and `RecordingStudioLibrary.update_placements!` save submitted item fields through the item adapter, then reorder. See the API note below.
+- Generic adapter `item_path` / `new_item_path` so hosts do not prepend helper overrides.
+- Placements editor: one "Add from library" button, an Upload button from `library_new_item_path_for`, and List drag handles.
+- Per-call `unfiltered:` on `resolve` / `placements` for trusted system jobs. `configuration.unfiltered_access` remains as a process-wide fallback. Anonymous resolve is unchanged.
+
+### Tests
+- Request test: an editor who can place on the holder cannot POST a real hidden item's id under an Accessible restriction.
+- Renamed the Placeable item-type allow-list test.
+
+### Docs
+- Hosts must call `library_for` before a library page or picker can find a library.
+
+### Placements PATCH API (for Attachable)
+
+`PATCH recording_placements_path(holder)` (same URL as index/create).
+
+```ruby
+RecordingStudioLibrary.update_placements!(
+  holder,
+  items: {
+    item_or_placement_id => { caption: "…", credit: "…", alt_text: "…" }
+  },
+  ordered_recording_ids: [placement_id, …], # optional
+  moving_recording_id: placement_id,        # optional, with target_position
+  target_position: 2,
+  actor: current_user
+)
+```
+
+- Authorize `:revise` on the holder.
+- `items` keys may be a placement recording id or the placed item recording id. Unknown keys are ignored; the adapter's `permitted_item_keys` is the allow-list (`title` on Base, `title` / `summary` / `accent` on Dummy). Attachable should implement `permitted_item_keys` as `%i[caption credit alt_text name description]` (or whichever columns it edits).
+- After item saves, Library calls `reorder!` when `ordered_recording_ids` or `moving_recording_id` is present.
+- JSON/XHR returns `{ ok: true|false }`.
+- Hosts should not implement a parallel update. Register adapter paths and keys; PATCH this route.
+
 ## [0.1.0] - 2026-10-10
 
 ### Added

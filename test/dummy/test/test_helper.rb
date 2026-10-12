@@ -24,6 +24,16 @@ module LibraryTestHelpers
 
     result
   end
+
+  def with_replaced_singleton(target, name, replacement)
+    original = target.method(name)
+    target.define_singleton_method(name, &replacement)
+    yield
+  ensure
+    target.define_singleton_method(name) do |*args, **kwargs, &block|
+      original.call(*args, **kwargs, &block)
+    end
+  end
 end
 
 class ActiveSupport::TestCase

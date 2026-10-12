@@ -45,10 +45,12 @@ en:
         title: "Placed items"
         subtitle: "Reorder or remove items on this page."
         add: "Add from library"
+        upload: "Upload"
         empty_title: "Nothing placed yet"
         empty_subtitle: "Choose items from the library to place them here."
         remove: "Remove"
         remove_aria: "Remove %{title}"
+        reorder_aria: "Reorder %{title}"
         item_fallback: "Item"
       items:
         fallback_type: "Item"
@@ -67,6 +69,7 @@ en:
         trash_in_use: "This item is used in %{places}. Move it to trash anyway?"
       flashes:
         added: "Added to this page."
+        updated: "Saved."
         reordered: "Order updated."
         removed: "Removed from this page."
         item_added: "Added to the library."
@@ -86,6 +89,7 @@ en:
         type_not_allowed: "That type cannot be placed here."
         adapter_not_registered: "That type is not set up for this library."
         item_not_visible: "You cannot place that item."
+        item_not_in_library: "That item is not in a live library."
         library_not_allowed: "That library cannot be used here."
         key_not_allowed: "That library is not available here."
         cannot_place_library: "A library cannot be placed."

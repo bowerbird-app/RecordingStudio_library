@@ -69,8 +69,7 @@ module RecordingStudioLibrary
 
       def assert_library_allowed!(parent, item)
         library = library_for_item(item)
-        return if library.blank?
-        return unless LibraryQuery.live?(library)
+        deny!(:item_not_in_library) unless live_library?(library)
         raise ArgumentError, I18n.t("recording_studio.library.errors.different_workspace") unless same_root?(parent, library)
 
         allowed_keys = allowed_library_keys_for(parent)
@@ -78,6 +77,14 @@ module RecordingStudioLibrary
         return if allowed_keys.include?(LibraryQuery.key_for(library))
 
         raise ArgumentError, I18n.t("recording_studio.library.errors.library_not_allowed")
+      end
+
+      def live_library?(library)
+        library.present? && LibraryQuery.live?(library)
+      end
+
+      def live_library_item?(item)
+        live_library?(library_for_item(item))
       end
 
       def library_for_item(item)

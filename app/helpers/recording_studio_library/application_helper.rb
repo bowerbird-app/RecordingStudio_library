@@ -30,16 +30,14 @@ module RecordingStudioLibrary
 
     def library_item_path_for(item_recording, **options)
       return if item_recording.blank?
-      return unless item_recording.recordable_type == RecordingStudioLibrary::SampleItem.name
 
-      library_engine_routes.sample_item_path(item_recording, **options)
+      RecordingStudioLibrary.adapter_for(item_recording).item_path(self, **options)
     end
 
     def library_new_item_path_for(library_recording, type: nil, **options)
       type_name = type.presence&.to_s || RecordingStudioLibrary::SampleItem.name
-      return unless type_name == RecordingStudioLibrary::SampleItem.name
-
-      library_engine_routes.new_recording_sample_item_path(library_recording, **options)
+      recording = Struct.new(:recordable, :recordable_type).new(nil, type_name)
+      RecordingStudioLibrary::Adapters.wrap(recording).new_item_path(self, library_recording, **options)
     end
 
     def library_type_label_for(type)
@@ -61,9 +59,14 @@ module RecordingStudioLibrary
     end
 
     def library_screen_page_nav(back_url:, title: nil, back_label: nil, anchor_url: nil, anchor_label: nil)
+      ensure_library_flatpack_theme
       back_label ||= t("recording_studio.library.navigation.back")
       anchor_label ||= t("recording_studio.library.navigation.return_to_source")
-      return fill_host_library_page_nav(title:, back_url:, back_label:, anchor_url:, anchor_label:) if library_uses_host_page_nav?
+      if library_uses_host_page_nav?
+        return unless respond_to?(:recording_studio_page_nav)
+
+        return fill_host_library_page_nav(title:, back_url:, back_label:, anchor_url:, anchor_label:)
+      end
 
       render FlatPack::PageNav::Component.new(
         back_icon: "arrow-left",
@@ -75,7 +78,15 @@ module RecordingStudioLibrary
 
     def library_uses_host_page_nav?
       configured = RecordingStudioLibrary.configuration.layout
-      (configured.blank? || configured.to_sym == :default) && respond_to?(:recording_studio_page_nav)
+      configured.blank? || configured.to_sym == :default
+    end
+
+    def library_engine_routes
+      if respond_to?(:recording_studio_library, true)
+        recording_studio_library
+      else
+        RecordingStudioLibrary::Engine.routes.url_helpers
+      end
     end
 
     private
@@ -91,12 +102,14 @@ module RecordingStudioLibrary
       nil
     end
 
-    def library_engine_routes
-      if respond_to?(:recording_studio_library, true)
-        recording_studio_library
-      else
-        RecordingStudioLibrary::Engine.routes.url_helpers
-      end
+    def ensure_library_flatpack_theme
+      return if @library_flatpack_theme_loaded
+
+      @library_flatpack_theme_loaded = true
+      return unless library_uses_host_page_nav?
+
+      content_for :head, stylesheet_link_tag("flat_pack/application", "data-turbo-track": "reload")
+      content_for :body_theme, "rounded" unless content_for?(:body_theme)
     end
   end
 end

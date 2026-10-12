@@ -9,11 +9,12 @@ module RecordingStudioLibrary
     Usage = Struct.new(:placement_recording, :parent_recording, :label, keyword_init: true)
 
     class << self
-      def resolve(parent_recording, include_trashed: false, actor: nil)
+      def resolve(parent_recording, include_trashed: false, actor: nil, unfiltered: false)
         RecordingStudioLibrary::Services::ResolvePlacements.call(
           parent_recording: parent_recording,
           include_trashed: include_trashed,
-          actor: actor
+          actor: actor,
+          unfiltered: unfiltered
         ).value || []
       end
 

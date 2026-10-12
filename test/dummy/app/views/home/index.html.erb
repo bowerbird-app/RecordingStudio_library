@@ -41,7 +41,7 @@
       <% card.header do %>
         <%= render FlatPack::PageTitle::Component.new(
           title: "Homepage gallery",
-          subtitle: "A showcase that places library samples (and a page from outside the library).",
+          subtitle: "A showcase that places library samples in order.",
           variant: :h3,
           class: "mb-0 pb-0"
         ) %>
@@ -111,7 +111,7 @@
         <ul class="space-y-3 text-sm leading-6">
           <li>The workspace opens a keyed library on first use. People never title or create that library.</li>
           <li>Samples are ordinary child items of the library, rendered by a built-in test adapter.</li>
-          <li>The homepage gallery holds ordered pointers. Those pointers can also aim at a page that is not in the library, as long as it is in the same workspace.</li>
+          <li>The homepage gallery holds ordered pointers. Place only accepts items that live in a live library in the same workspace.</li>
         </ul>
       <% end %>
     <% end %>

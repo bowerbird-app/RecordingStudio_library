@@ -92,7 +92,35 @@ module RecordingStudioLibrary
         ACCENTS.fetch(accent_name)
       end
 
+      def item_path(view, **options)
+        return unless sample_item?
+
+        library_routes(view).sample_item_path(recording, **options)
+      end
+
+      def new_item_path(view, library_recording, **options)
+        return unless sample_item?
+
+        library_routes(view).new_recording_sample_item_path(library_recording, **options)
+      end
+
+      def permitted_item_keys
+        %i[title summary accent]
+      end
+
       private
+
+      def sample_item?
+        type_name == "RecordingStudioLibrary::SampleItem"
+      end
+
+      def library_routes(view)
+        if view.respond_to?(:library_engine_routes, true)
+          view.library_engine_routes
+        else
+          RecordingStudioLibrary::Engine.routes.url_helpers
+        end
+      end
 
       def field_name(form, attribute)
         object_name = form.respond_to?(:object_name) ? form.object_name : nil
