@@ -3,6 +3,18 @@
 require "test_helper"
 
 class PlacementsTest < Minitest::Test
+  class LeakyItemAdapter < RecordingStudioLibrary::Adapters::Base
+    def permitted_item_keys
+      %i[title]
+    end
+
+    def update_item!(attrs, actor: nil) # rubocop:disable Lint/UnusedMethodArgument -- matches adapter API
+      recordable.assign_attributes(attrs)
+      recordable.save! if recordable.respond_to?(:save!)
+      recordable
+    end
+  end
+
   PlacementRecordable = Struct.new(:id, :item_recording_id, keyword_init: true)
 
   Recording = Struct.new(:id, :recordable_type, :parent_recording_id, :root_recording_id, :root_recording, :recordable,
@@ -658,31 +670,22 @@ class PlacementsTest < Minitest::Test
 
   def test_update_placements_drops_non_permitted_keys_before_the_adapter
     parent, item, place_one = update_placement_fixtures
-    leaky = Class.new(RecordingStudioLibrary::Adapters::Base) do
-      def permitted_item_keys
-        %i[title]
-      end
+    adapter = LeakyItemAdapter.new(item)
 
-      def update_item!(attrs, _actor: nil)
-        recordable.assign_attributes(attrs)
-        recordable.save! if recordable.respond_to?(:save!)
-        recordable
+    RecordingStudioLibrary.stub(:adapter_for, adapter) do
+      RecordingStudioLibrary::Placements.stub(:resolve, resolved_for(place_one, item)) do
+        result = RecordingStudioLibrary::Services::UpdatePlacements.call(
+          parent_recording: parent,
+          items: { "place-1" => { title: "Lobby still", extra: "ignored", summary: "nope" } },
+          actor: :ada
+        )
+
+        assert result.success?, result.error
+        assert_equal({ title: "Lobby still" }, item.recordable.assigned)
+        refute adapter.permitted_item_keys.include?(:extra)
+        refute adapter.permitted_item_keys.include?(:summary)
       end
     end
-    RecordingStudioLibrary.register_adapter("RecordingStudioLibrary::SampleItem", leaky)
-
-    RecordingStudioLibrary::Placements.stub(:resolve, resolved_for(place_one, item)) do
-      result = RecordingStudioLibrary::Services::UpdatePlacements.call(
-        parent_recording: parent,
-        items: { "place-1" => { title: "Lobby still", extra: "ignored", summary: "nope" } },
-        actor: :ada
-      )
-
-      assert result.success?
-      assert_equal({ title: "Lobby still" }, item.recordable.assigned)
-    end
-  ensure
-    RecordingStudioLibrary.register_adapter("RecordingStudioLibrary::SampleItem", RecordingStudioLibrary::Adapters::Dummy)
   end
 
   def test_update_placements_refuses_without_library_revise
