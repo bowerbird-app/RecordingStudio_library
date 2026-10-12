@@ -2,7 +2,7 @@
 
 A Recording Studio addon that owns a collection of things, and ordered pointers to them elsewhere. Items stay their own types. Libraries are keyed and host-mounted. Placements only store what is pointed at and in what order.
 
-Version **0.1.0**. Recording Studio dummy GitHub tag `v4.4.0`, Accessible `v0.15.0`, Orderable `v0.2.8`, Trashable `v0.7.0`, Metrics `v0.2.2`, Flatpack `v0.1.227`.
+Version **0.1.0**. Recording Studio dummy GitHub tag `v4.4.0`, Accessible `v0.15.0`, Orderable `v0.2.8`, Trashable `v0.8.0`, Metrics `v0.2.2`, Flatpack `v0.1.227`.
 
 ## What it does
 
@@ -47,7 +47,7 @@ gem "recording_studio_library", github: "bowerbird-app/RecordingStudio_library",
 gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v4.4.0"
 gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.15.0"
 gem "recording_studio_orderable", github: "bowerbird-app/RecordingStudio_orderable", tag: "v0.2.8"
-gem "recording_studio_trashable", github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.7.0"
+gem "recording_studio_trashable", github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.8.0"
 gem "flat_pack", github: "bowerbird-app/flatpack", tag: "v0.1.227"
 ```
 
