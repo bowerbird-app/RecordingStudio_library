@@ -1,0 +1,49 @@
+<% navigation_params = library_navigation_params %>
+
+<div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
+  <%= library_screen_page_nav(
+    back_url: library_path_for(@library, **navigation_params)
+  ) %>
+
+  <%= render FlatPack::PageTitle::Component.new(
+    title: @adapter.title,
+    subtitle: @adapter.type_label,
+    variant: :h1
+  ) %>
+
+  <%= @adapter.full_view(self) %>
+
+  <%= render FlatPack::SectionTitle::Component.new(title: t("recording_studio.library.items.used_in")) %>
+  <% if @usages.any? %>
+    <%= render FlatPack::List::Component.new(divider: true) do %>
+      <% @usages.each do |usage| %>
+        <%= render FlatPack::List::Item.new do %>
+          <%= usage.label %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% else %>
+    <p class="text-sm text-(--surface-muted-content-color)"><%= t("recording_studio.library.items.unused") %></p>
+  <% end %>
+
+  <div class="flex flex-wrap gap-3">
+    <%= render FlatPack::Button::Component.new(
+      text: t("recording_studio.library.items.edit_title"),
+      style: :secondary,
+      size: :md,
+      href: edit_sample_item_path(@item_recording, navigation_params)
+    ) %>
+    <% if @can_remove %>
+      <%= form_with url: sample_item_path(@item_recording, navigation_params), method: :delete, class: "inline-flex" do %>
+        <%= render FlatPack::Button::Component.new(
+          text: t("recording_studio.library.items.trash"),
+          style: :danger,
+          size: :md,
+          type: "submit",
+          aria: { label: t("recording_studio.library.items.trash_aria", title: @adapter.title) },
+          data: { turbo_confirm: library_usage_confirm(@usages) }
+        ) %>
+      <% end %>
+    <% end %>
+  </div>
+</div>

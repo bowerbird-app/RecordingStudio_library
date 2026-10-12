@@ -1,0 +1,20 @@
+<% navigation_params = local_assigns.fetch(:navigation_params) %>
+<%= render FlatPack::Grid::Component.new(cols: 2, class: "items-stretch gap-6 lg:grid-cols-5") do %>
+  <% items.each do |recording, adapter| %>
+    <% href = library_item_path_for(recording, **navigation_params) %>
+    <%= render FlatPack::Card::Component.new(
+      style: :default,
+      clickable: href.present?,
+      href: href,
+      class: "rounded-xl focus:outline-none focus:ring-2 focus:ring-(--brand-color)"
+    ) do |card| %>
+      <% card.media(aspect_ratio: "4/3", padding: :none) do %>
+        <%= adapter.thumbnail(self) %>
+      <% end %>
+      <% card.body do %>
+        <p class="truncate font-medium"><%= adapter.title %></p>
+        <p class="text-xs text-(--surface-muted-content-color)"><%= adapter.type_label %></p>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

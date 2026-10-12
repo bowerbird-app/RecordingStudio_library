@@ -1,0 +1,89 @@
+<% listing_params = { q: @query.presence, view: @view_mode, type: @type, key: params[:key].presence }.compact %>
+<% navigation_params = library_navigation_params %>
+<% library_url = library_path_for(@library, **navigation_params) %>
+
+<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
+  <%= library_screen_page_nav(
+    back_url: library_page_nav_anchor_url(fallback: main_app.root_path)
+  ) %>
+
+  <%= render FlatPack::PageTitle::Component.new(
+    title: library_title_for(@library),
+    subtitle: t("recording_studio.library.library.title"),
+    variant: :h1
+  ) %>
+
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div class="flex flex-wrap items-center gap-3">
+      <% if @can_add %>
+        <% library_addable_types_for(@library).each do |type| %>
+          <%= render FlatPack::Button::Component.new(
+            text: library_type_label_for(type),
+            style: :primary,
+            size: :md,
+            icon: "plus",
+            href: library_new_item_path_for(@library, type: type, **navigation_params)
+          ) %>
+        <% end %>
+      <% end %>
+
+      <% if @items.any? || @view_mode.present? %>
+        <%= render FlatPack::Button::Pill::Component.new(
+          items: [
+            {
+              text: t("recording_studio.library.library.grid"),
+              href: library_path(@library, navigation_params.merge(listing_params.merge(view: :grid))),
+              active: @view_mode == :grid
+            },
+            {
+              text: t("recording_studio.library.library.list"),
+              href: library_path(@library, navigation_params.merge(listing_params.merge(view: :list))),
+              active: @view_mode == :list
+            }
+          ],
+          aria: { label: t("recording_studio.library.library.view_mode") }
+        ) %>
+      <% end %>
+    </div>
+
+    <%= form_with url: library_url, method: :get, local: true, class: "w-full lg:w-auto" do %>
+      <% navigation_params.each do |key, value| %>
+        <%= hidden_field_tag key, value %>
+      <% end %>
+      <%= hidden_field_tag :view, @view_mode %>
+      <%= hidden_field_tag :key, params[:key] if params[:key].present? %>
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <%= render FlatPack::Search::Component.new(
+          name: :q,
+          value: @query,
+          placeholder: t("recording_studio.library.library.search_placeholder"),
+          max_width: :lg,
+          aria: { label: t("recording_studio.library.library.search_aria") }
+        ) %>
+        <% if @type_options.size > 1 %>
+          <%= render FlatPack::Select::Component.new(
+            name: :type,
+            label: t("recording_studio.library.library.type_filter"),
+            options: [[t("recording_studio.library.library.type_all"), ""]] + @type_options,
+            value: @type.to_s,
+            onchange: "this.form.requestSubmit()"
+          ) %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @items.any? %>
+    <% if @view_mode == :list %>
+      <%= render "list", items: @items, navigation_params: navigation_params %>
+    <% else %>
+      <%= render "grid", items: @items, navigation_params: navigation_params %>
+    <% end %>
+  <% else %>
+    <%= render FlatPack::EmptyState::Component.new(
+      title: @query.present? || @type.present? ? t("recording_studio.library.library.empty_search_title") : t("recording_studio.library.library.empty_title"),
+      description: @query.present? || @type.present? ? nil : t("recording_studio.library.library.empty_subtitle"),
+      icon: :squares_2x2
+    ) %>
+  <% end %>
+</div>

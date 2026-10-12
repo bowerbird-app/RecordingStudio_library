@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_09_101502) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_11_020006) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -25,6 +25,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_101502) do
     t.datetime "created_at", null: false
     t.string "title"
     t.datetime "updated_at", null: false
+  end
+
+  create_table "recording_studio_access_constraints", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "action", null: false
+    t.string "allowed_audiences", default: [], null: false, array: true
+    t.datetime "created_at", null: false
+    t.index ["action"], name: "index_recording_studio_access_constraints_on_action"
   end
 
   create_table "recording_studio_access_invitations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -46,6 +53,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_101502) do
     t.index ["recording_id"], name: "index_recording_studio_access_invitations_on_recording_id"
     t.index ["token_digest"], name: "idx_rs_access_invitations_token_digest", unique: true
     t.check_constraint "accepted_at IS NULL OR revoked_at IS NULL", name: "access_invitations_not_accepted_and_revoked"
+  end
+
+  create_table "recording_studio_access_rules", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "action", null: false
+    t.string "audience", null: false
+    t.datetime "created_at", null: false
+    t.index ["action"], name: "index_recording_studio_access_rules_on_action"
   end
 
   create_table "recording_studio_accesses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -81,6 +95,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_101502) do
     t.index ["recording_id"], name: "index_recording_studio_events_on_recording_id"
   end
 
+  create_table "recording_studio_libraries", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "key", default: "default", null: false
+    t.datetime "created_at", null: false
+    t.index ["key"], name: "index_recording_studio_libraries_on_key"
+  end
+
+  create_table "recording_studio_library_placements", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "item_recording_id", null: false
+    t.datetime "created_at", null: false
+    t.index ["item_recording_id"], name: "index_recording_studio_library_placements_on_item_recording_id"
+  end
+
+  create_table "recording_studio_library_sample_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "title", null: false
+    t.text "summary"
+    t.string "accent", default: "coral"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "recording_studio_recordings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.uuid "parent_recording_id"
@@ -89,6 +123,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_101502) do
     t.uuid "root_recording_id"
     t.datetime "trashed_at"
     t.datetime "updated_at", null: false
+    t.integer "recording_studio_orderable_position"
+    t.boolean "trash_root", default: false, null: false
+    t.index ["parent_recording_id", "recording_studio_orderable_position"], name: "idx_rs_recordings_orderable_sibling_position"
     t.index ["parent_recording_id"], name: "index_recording_studio_recordings_on_parent_recording_id"
     t.index ["recordable_type", "recordable_id", "parent_recording_id", "trashed_at"], name: "index_recording_studio_recordings_on_recordable_parent_trashed"
     t.index ["recordable_type", "recordable_id"], name: "index_recording_studio_recordings_on_recordable"
@@ -96,6 +133,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_101502) do
     t.index ["root_recording_id", "parent_recording_id"], name: "index_rs_recordings_on_root_and_parent"
     t.index ["root_recording_id", "recordable_type", "recordable_id"], name: "index_rs_recordings_on_root_and_recordable"
     t.index ["root_recording_id"], name: "index_rs_recordings_on_root_recording"
+    t.index ["trashed_at", "trash_root"], name: "idx_rs_recordings_trashed_at_trash_root"
+    t.index ["trashed_at"], name: "index_recording_studio_recordings_on_trashed_at"
   end
 
   create_table "recording_studio_root_switchable_selections", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -115,6 +154,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_101502) do
     t.index ["actor_type", "actor_id", "device_key", "scope_key"], name: "idx_rs_root_switchable_actor_device_scope", unique: true, where: "(actor_id IS NOT NULL)"
     t.index ["device_key", "scope_key"], name: "idx_rs_root_switchable_anonymous_device_scope", unique: true, where: "(actor_id IS NULL)"
     t.index ["root_recording_id"], name: "idx_rs_root_switchable_root_recording"
+  end
+
+  create_table "recording_studio_trashable_retention_settings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "recording_id", null: false
+    t.integer "purge_after_days"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["recording_id"], name: "idx_rs_trashable_retention_on_recording", unique: true
+  end
+
+  create_table "showcases", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "title", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -139,4 +192,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_101502) do
   add_foreign_key "recording_studio_events", "recording_studio_recordings", column: "recording_id"
   add_foreign_key "recording_studio_recordings", "recording_studio_recordings", column: "parent_recording_id"
   add_foreign_key "recording_studio_recordings", "recording_studio_recordings", column: "root_recording_id"
+  add_foreign_key "recording_studio_trashable_retention_settings", "recording_studio_recordings", column: "recording_id"
 end

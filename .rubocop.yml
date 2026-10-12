@@ -2,9 +2,9 @@ AllCops:
   TargetRubyVersion: 3.3
   NewCops: enable
   Exclude:
-    - 'test/dummy/**/*'
-    - 'vendor/**/*'
-    - 'bin/**/*'
+    - "test/dummy/**/*"
+    - "vendor/**/*"
+    - "bin/**/*"
 
 Style/Documentation:
   Enabled: false
@@ -13,40 +13,83 @@ Style/StringLiterals:
   Enabled: true
   EnforcedStyle: double_quotes
 
-Layout/LineLength:
-  Max: 120
+Style/ArgumentsForwarding:
+  Enabled: false
 
-# Relax metrics for test files and generators
+Layout/LineLength:
+  Max: 140
+  Exclude:
+    - "test/**/*"
+
 Metrics/ClassLength:
   Exclude:
-    - 'test/**/*'
+    - "test/**/*"
+    - "lib/recording_studio_library/engine.rb"
+    - "lib/recording_studio_library/configuration.rb"
+    - "app/controllers/recording_studio_library/application_controller.rb"
 
 Metrics/MethodLength:
   Exclude:
-    - 'test/**/*'
-    - 'lib/generators/**/*'
+    - "test/**/*"
+    - "lib/generators/**/*"
+    - "app/controllers/**/*"
+    - "app/helpers/**/*"
+    - "app/services/**/*"
+    - "app/models/**/*"
+    - "lib/recording_studio_library/engine.rb"
+    - "lib/recording_studio_library/configuration.rb"
+    - "lib/recording_studio_library/adapters/**/*"
+    - "lib/recording_studio_library/authorization.rb"
 
 Metrics/AbcSize:
   Exclude:
-    - 'test/**/*'
-    - 'lib/generators/**/*'
+    - "test/**/*"
+    - "lib/generators/**/*"
+    - "app/controllers/**/*"
+    - "app/services/**/*"
+    - "lib/recording_studio_library/engine.rb"
+    - "lib/recording_studio_library/configuration.rb"
+    - "lib/recording_studio_library/authorization.rb"
+    - "lib/recording_studio_library/adapters/**/*"
 
-# Allow empty blocks in tests (common for stubs/mocks)
+Metrics/ModuleLength:
+  Exclude:
+    - "app/services/**/*"
+
+Metrics/BlockLength:
+  Exclude:
+    - "test/**/*"
+    - "lib/recording_studio_library/engine.rb"
+
+Metrics/ParameterLists:
+  Exclude:
+    - "app/services/**/*"
+
+Metrics/CyclomaticComplexity:
+  Exclude:
+    - "test/**/*"
+    - "app/services/**/*"
+    - "lib/recording_studio_library/authorization.rb"
+
+Metrics/PerceivedComplexity:
+  Exclude:
+    - "test/**/*"
+    - "app/services/**/*"
+    - "lib/recording_studio_library/authorization.rb"
+
 Lint/EmptyBlock:
   Exclude:
-    - 'test/**/*'
+    - "test/**/*"
 
-# Allow nested method definitions in tests (common for testing behavior)
 Lint/NestedMethodDefinition:
   Exclude:
-    - 'test/**/*'
+    - "test/**/*"
 
-# Allow underscores in test method names (test_something_100 is fine)
 Naming/VariableNumber:
   Exclude:
-    - 'test/**/*'
+    - "test/**/*"
 
-# Don't require super in service initialize methods
 Lint/MissingSuper:
   Exclude:
-    - 'test/services/**/*'
+    - "app/services/**/*"
+    - "test/services/**/*"

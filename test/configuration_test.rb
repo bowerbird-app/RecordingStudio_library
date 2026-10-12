@@ -4,22 +4,21 @@ require "test_helper"
 
 class ConfigurationTest < Minitest::Test
   def setup
-    @configuration = GemTemplate::Configuration.new
+    @configuration = RecordingStudioLibrary::Configuration.new
   end
 
   def test_merge_updates_known_attributes
-    @configuration.merge!(api_key: "abc123", timeout: 9, enable_feature_x: true)
+    @configuration.merge!(layout: "host", library_label: "Library")
 
-    assert_equal "abc123", @configuration.api_key
-    assert_equal 9, @configuration.timeout
-    assert_equal true, @configuration.enable_feature_x
+    assert_equal "host", @configuration.layout
+    assert_equal "Library", @configuration.library_label
   end
 
   def test_merge_ignores_unknown_keys
-    @configuration.merge!(unknown_key: "ignored", timeout: 7)
+    @configuration.merge!(unknown_key: "ignored", layout: "custom")
 
     refute_respond_to @configuration, :unknown_key
-    assert_equal 7, @configuration.timeout
+    assert_equal "custom", @configuration.layout
   end
 
   def test_merge_with_non_enumerable_is_noop
@@ -27,31 +26,25 @@ class ConfigurationTest < Minitest::Test
 
     @configuration.merge!(nil)
 
-    assert_nil @configuration.api_key if original[:api_key].nil?
-    assert_equal original[:api_key], @configuration.api_key unless original[:api_key].nil?
-    assert_equal original[:timeout], @configuration.timeout
-    assert_equal original[:enable_feature_x], @configuration.enable_feature_x
+    assert_equal original[:layout], @configuration.layout
   end
 
-  def test_initialize_uses_environment_api_key_and_defaults
-    previous_value = ENV.fetch("GEM_TEMPLATE_API_KEY", nil)
-    ENV["GEM_TEMPLATE_API_KEY"] = "env-token"
+  def test_initialize_uses_defaults
+    configuration = RecordingStudioLibrary::Configuration.new
 
-    configuration = GemTemplate::Configuration.new
-
-    assert_equal "env-token", configuration.api_key
-    assert_equal false, configuration.enable_feature_x
-    assert_equal 5, configuration.timeout
+    assert_equal :default, configuration.layout
     assert_instance_of RecordingStudio::Hooks, configuration.hooks
-  ensure
-    ENV["GEM_TEMPLATE_API_KEY"] = previous_value
+    assert_equal :view, configuration.auth_roles[:view]
+    assert_equal :edit, configuration.auth_roles[:upload]
+    assert_equal false, configuration.unfiltered_access
+    refute_respond_to configuration, :impersonator
+    refute_respond_to configuration, :include_trashed_images
   end
 
   def test_merge_accepts_string_keys
-    @configuration.merge!("api_key" => "string-key", "timeout" => 12)
+    @configuration.merge!("layout" => "string-key")
 
-    assert_equal "string-key", @configuration.api_key
-    assert_equal 12, @configuration.timeout
+    assert_equal "string-key", @configuration.layout
   end
 
   def test_to_h_reports_registered_hook_counts
@@ -66,8 +59,13 @@ class ConfigurationTest < Minitest::Test
   end
 
   def test_configure_without_block_is_safe
-    GemTemplate.configure
+    RecordingStudioLibrary.configure
 
-    assert_kind_of GemTemplate::Configuration, GemTemplate.configuration
+    assert_kind_of RecordingStudioLibrary::Configuration, RecordingStudioLibrary.configuration
+  end
+
+  def test_normalize_role_aliases
+    assert_equal :view, @configuration.normalize_role(:viewer)
+    assert_equal :edit, @configuration.normalize_role("editor")
   end
 end

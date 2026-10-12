@@ -18,6 +18,7 @@ class DocsController < ApplicationController
 
   def recordings_tree
     recordings = RecordingStudio::Recording.includes(:recordable).reorder(:created_at, :id).to_a
+    recordings.reject! { |recording| access_grant_recording?(recording) }
     recordings_by_parent_id = recordings.group_by(&:parent_recording_id)
 
     @recording_tree = recordings_by_parent_id.fetch(nil, []).map do |recording|
@@ -26,9 +27,9 @@ class DocsController < ApplicationController
   end
 
   def gem_views
-    prefix = "#{GemTemplate::Engine.root}/"
+    prefix = "#{RecordingStudioLibrary::Engine.root}/"
 
-    @engine_views = Dir.glob(GemTemplate::Engine.root.join("app/views/gem_template/**/*.erb").to_s)
+    @engine_views = Dir.glob(RecordingStudioLibrary::Engine.root.join("app/views/recording_studio_library/**/*.erb").to_s)
       .sort
       .map { |path| path.delete_prefix(prefix) }
   end
@@ -57,6 +58,10 @@ class DocsController < ApplicationController
     recordable_class.count
   rescue ActiveRecord::ActiveRecordError
     0
+  end
+
+  def access_grant_recording?(recording)
+    recording.recordable_type.to_s.demodulize == "Access"
   end
 
   def build_recording_node(recording, recordings_by_parent_id)

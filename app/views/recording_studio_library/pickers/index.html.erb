@@ -1,0 +1,22 @@
+<% picker_title = t("recording_studio.library.picker.title") %>
+<% picker_body = capture { render "picker_body" } %>
+
+<% if modal_request? %>
+  <%= flat_pack_modal_screen(modal_id: @modal_id, title: picker_title) do %>
+    <%= picker_body %>
+  <% end %>
+<% else %>
+  <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
+    <%= library_screen_page_nav(
+      back_url: library_page_nav_anchor_url(fallback: library_placements_path_for(@holder, **library_navigation_params))
+    ) %>
+
+    <%= render FlatPack::PageTitle::Component.new(
+      title: picker_title,
+      subtitle: t("recording_studio.library.picker.subtitle"),
+      variant: :h1
+    ) %>
+
+    <%= picker_body %>
+  </div>
+<% end %>

@@ -1,0 +1,26 @@
+<% navigation_params = library_navigation_params %>
+
+<div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
+  <%= library_screen_page_nav(
+    back_url: sample_item_path(@item_recording, navigation_params)
+  ) %>
+
+  <%= render FlatPack::PageTitle::Component.new(
+    title: t("recording_studio.library.items.edit_title"),
+    variant: :h1
+  ) %>
+
+  <%= form_with model: @sample_item,
+                url: sample_item_path(@item_recording, navigation_params),
+                method: :patch,
+                scope: :sample_item,
+                class: "flex flex-col gap-4" do |form| %>
+    <%= @adapter.edit_fields(self, form) %>
+    <%= render FlatPack::Button::Component.new(
+      text: t("recording_studio.library.items.save"),
+      style: :primary,
+      size: :md,
+      type: "submit"
+    ) %>
+  <% end %>
+</div>

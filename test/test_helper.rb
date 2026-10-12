@@ -11,6 +11,13 @@ rescue LoadError
   # bundle does not load that gem; only the gem suite stubs methods.
 end
 require "rails"
+require "active_record"
 require "active_support/time"
 Time.zone ||= "UTC"
-require "gem_template"
+require "recording_studio_library"
+
+Dir[File.expand_path("../app/services/**/*.rb", __dir__)].each { |path| require path }
+
+I18n.load_path << File.expand_path("../config/locales/en.yml", __dir__)
+I18n.backend.load_translations
+I18n.default_locale = :en

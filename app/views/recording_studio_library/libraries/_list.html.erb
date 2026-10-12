@@ -1,0 +1,48 @@
+<% navigation_params = local_assigns.fetch(:navigation_params) %>
+<% preview_column = lambda do |pair|
+     recording, adapter = pair
+     href = library_item_path_for(recording, **navigation_params)
+     preview = adapter.preview(self)
+     if href.present?
+       link_to href, class: "inline-flex rounded-lg focus:outline-none focus:ring-2 focus:ring-(--brand-color)" do
+         preview
+       end
+     else
+       preview
+     end
+   end %>
+<% name_column = lambda do |pair|
+     recording, adapter = pair
+     href = library_item_path_for(recording, **navigation_params)
+     title = render(
+       FlatPack::Link::Component.new(
+         href: href.presence || "#",
+         class: "block max-w-[12rem] truncate font-medium sm:max-w-[18rem]"
+       )
+     ) { adapter.title }
+     safe_join([title, tag.div(adapter.type_label, class: "text-xs text-(--surface-muted-content-color)")])
+   end %>
+<% type_column = lambda do |pair|
+     _recording, adapter = pair
+     adapter.type_label
+   end %>
+<% actions_column = lambda do |pair|
+     recording, adapter = pair
+     href = library_item_path_for(recording, **navigation_params)
+     next "".html_safe if href.blank?
+
+     render FlatPack::Button::Component.new(
+       text: t("recording_studio.library.library.open"),
+       style: :ghost,
+       size: :sm,
+       href: href,
+       aria: { label: t("recording_studio.library.library.open_aria", title: adapter.title) }
+     )
+   end %>
+
+<%= render FlatPack::Table::Component.new(data: items) do |table| %>
+  <% table.column(title: t("recording_studio.library.library.preview_column"), html: preview_column) %>
+  <% table.column(title: t("recording_studio.library.library.name_column"), html: name_column) %>
+  <% table.column(title: t("recording_studio.library.library.type_column"), html: type_column) %>
+  <% table.column(title: t("recording_studio.library.library.actions_column"), html: actions_column) %>
+<% end %>

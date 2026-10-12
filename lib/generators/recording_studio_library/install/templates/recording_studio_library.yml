@@ -1,0 +1,5 @@
+development:
+  layout: default
+
+production:
+  layout: default
