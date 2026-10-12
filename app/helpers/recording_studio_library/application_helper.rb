@@ -35,8 +35,22 @@ module RecordingStudioLibrary
       library_engine_routes.sample_item_path(item_recording, **options)
     end
 
-    def library_new_item_path_for(library_recording, **options)
+    def library_new_item_path_for(library_recording, type: nil, **options)
+      type_name = type.presence&.to_s || RecordingStudioLibrary::SampleItem.name
+      return unless type_name == RecordingStudioLibrary::SampleItem.name
+
       library_engine_routes.new_recording_sample_item_path(library_recording, **options)
+    end
+
+    def library_type_label_for(type)
+      recording = Struct.new(:recordable, :recordable_type).new(nil, type.to_s)
+      RecordingStudioLibrary::Adapters.wrap(recording).type_label
+    end
+
+    def library_addable_types_for(library_recording)
+      types = RecordingStudioLibrary::Services::LibraryQuery.allowed_item_types_for(library_recording)
+      types = [RecordingStudioLibrary::SampleItem.name] if types.blank?
+      types.select { |item_type| library_new_item_path_for(library_recording, type: item_type) }
     end
 
     def library_usage_confirm(usages)

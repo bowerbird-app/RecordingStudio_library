@@ -112,6 +112,16 @@ class LibraryFlowTest < ActionDispatch::IntegrationTest
     assert_select "p, a, td", text: /Grid sample/
   end
 
+  test "library page omits dummy workspace chrome and labels add by type" do
+    get recording_studio_library.library_path(@library)
+
+    assert_response :success
+    refute_includes @response.body, "Sign out"
+    refute_includes @response.body, "recording-studio-root-switchable--root-switch-dropdown"
+    refute_includes @response.body, "Add sample"
+    assert_select "a[href*='sample_items/new']", text: /\A\s*Sample\s*\z/
+  end
+
   test "picker standalone and modal screens render" do
     record_sample("Picker sample")
 
@@ -119,11 +129,27 @@ class LibraryFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "p", text: /Picker sample/
     assert_includes @response.body, "flat-pack-checkbox"
+    assert_includes @response.body, "flat-pack--unsaved-changes"
+    assert_includes @response.body, "Add selected"
+    refute_includes @response.body, "Sign out"
+    add_index = @response.body.index("Add selected")
+    search_index = @response.body.index('name="q"') || @response.body.index("name='q'")
+    assert add_index && search_index && add_index < search_index
 
     get recording_studio_library.recording_picker_path(@showcase_recording, modal: "1", modal_id: "library-picker")
     assert_response :success
     assert_includes @response.body, "library-picker-screen"
     assert_includes @response.body, "data-fp-nav"
+    assert_includes @response.body, "flat-pack--unsaved-changes"
+    assert_includes @response.body, "Add selected"
+    refute_includes @response.body, "data-fp-screen-footer"
+  end
+
+  test "home page still shows dummy workspace chrome" do
+    get root_path
+
+    assert_response :success
+    assert_includes @response.body, "Sign out"
   end
 
   test "sample create posts nested fields through the adapter" do

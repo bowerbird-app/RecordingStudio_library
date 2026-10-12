@@ -1,94 +1,108 @@
 <% navigation_params = library_navigation_params.merge(modal: params[:modal], modal_id: @modal_id).compact %>
 <% picker_url = library_picker_path_for(@holder, **navigation_params) %>
+<% show_add_selected = @can_add && @items.any? %>
 
 <div class="flex w-full flex-col gap-6">
-  <%= form_with url: picker_url, method: :get, local: true, class: "w-full", html: { data: modal_request? ? { fp_nav: "replace" } : {} } do %>
-    <% navigation_params.each do |key, value| %>
-      <%= hidden_field_tag key, value %>
-    <% end %>
-    <div class="flex flex-col gap-3 lg:flex-row lg:items-end">
-      <%= render FlatPack::Search::Component.new(
-        name: :q,
-        value: @query,
-        placeholder: t("recording_studio.library.picker.search_placeholder"),
-        max_width: :lg,
-        aria: { label: t("recording_studio.library.picker.search_aria") }
-      ) %>
-      <% if @picker_libraries.size > 1 && @library.present? %>
-        <%= render FlatPack::Select::Component.new(
-          name: :library_id,
-          label: t("recording_studio.library.picker.library_filter"),
-          options: @picker_libraries.map { |library| [library_title_for(library), library.id.to_s] },
-          value: @library.id.to_s,
-          onchange: "this.form.requestSubmit()"
-        ) %>
-      <% elsif @library.present? %>
-        <%= hidden_field_tag :library_id, @library.id %>
-      <% end %>
-      <% if @type_options.size > 1 %>
-        <%= render FlatPack::Select::Component.new(
-          name: :type,
-          label: t("recording_studio.library.picker.type_filter"),
-          options: [[t("recording_studio.library.picker.type_all"), ""]] + @type_options,
-          value: @type.to_s,
-          onchange: "this.form.requestSubmit()"
-        ) %>
-      <% end %>
-    </div>
-  <% end %>
-
-  <% if @items.any? %>
-    <%= form_with url: library_placements_path_for(@holder, **library_navigation_params),
-                  method: :post,
-                  html: {
-                    id: "library-picker-form",
-                    data: modal_request? ? { turbo_frame: "_top" } : {}
-                  } do %>
-      <%= render FlatPack::Grid::Component.new(cols: 2, class: "items-stretch gap-4 lg:grid-cols-4") do %>
-        <% @items.each do |recording, adapter| %>
-          <% placed = @placed_ids.include?(recording.id.to_s) %>
-          <label class="flex cursor-pointer flex-col">
-            <%= render FlatPack::Card::Component.new(style: :interactive, padding: :sm) do |card| %>
-              <% card.media(aspect_ratio: "4/3", padding: :none) do %>
-                <%= adapter.thumbnail(self) %>
-              <% end %>
-              <% card.body do %>
-                <div class="flex items-start gap-2">
-                  <%= render FlatPack::Checkbox::Component.new(
-                        name: "item_recording_ids[]",
-                        value: recording.id,
-                        id: "picker-item-#{recording.id}",
-                        disabled: placed,
-                        aria: { label: t("recording_studio.library.picker.select_aria", title: adapter.title) }
-                      ) %>
-                  <div class="min-w-0">
-                    <p class="truncate font-medium"><%= adapter.title %></p>
-                    <p class="text-xs text-(--surface-muted-content-color)">
-                      <%= placed ? t("recording_studio.library.picker.already_placed") : adapter.type_label %>
-                    </p>
-                  </div>
-                </div>
-              <% end %>
-            <% end %>
-          </label>
+  <div class="grid items-end gap-3 <%= "lg:grid-cols-[auto_minmax(0,1fr)]" if show_add_selected %>">
+    <% if @items.any? %>
+      <%= form_with url: library_placements_path_for(@holder, **library_navigation_params),
+                    method: :post,
+                    html: {
+                      id: "library-picker-form",
+                      class: "contents",
+                      data: {
+                        controller: "flat-pack--unsaved-changes",
+                        turbo_frame: (modal_request? ? "_top" : nil)
+                      }.compact
+                    } do %>
+        <% if show_add_selected %>
+          <div class="order-1 lg:col-start-1 lg:row-start-1">
+            <%= render FlatPack::Button::Component.new(
+              text: t("recording_studio.library.picker.add_selected"),
+              style: :default,
+              size: :md,
+              type: "submit",
+              data: { "flat-pack--unsaved-changes-target": "submit" }
+            ) %>
+          </div>
         <% end %>
-      <% end %>
 
-      <% unless modal_request? %>
-        <div class="mt-4">
-          <%= render FlatPack::Button::Component.new(
-            text: t("recording_studio.library.picker.add_selected"),
-            style: :primary,
-            size: :md,
-            type: "submit"
-          ) %>
+        <div class="order-3 col-span-full <%= "lg:row-start-2" if show_add_selected %>">
+          <%= render FlatPack::Grid::Component.new(cols: 2, class: "items-stretch gap-4 lg:grid-cols-4") do %>
+            <% @items.each do |recording, adapter| %>
+              <% placed = @placed_ids.include?(recording.id.to_s) %>
+              <label class="flex cursor-pointer flex-col">
+                <%= render FlatPack::Card::Component.new(style: :interactive, padding: :sm) do |card| %>
+                  <% card.media(aspect_ratio: "4/3", padding: :none) do %>
+                    <%= adapter.thumbnail(self) %>
+                  <% end %>
+                  <% card.body do %>
+                    <div class="flex items-start gap-2">
+                      <%= render FlatPack::Checkbox::Component.new(
+                            name: "item_recording_ids[]",
+                            value: recording.id,
+                            id: "picker-item-#{recording.id}",
+                            disabled: placed,
+                            aria: { label: t("recording_studio.library.picker.select_aria", title: adapter.title) }
+                          ) %>
+                      <div class="min-w-0">
+                        <p class="truncate font-medium"><%= adapter.title %></p>
+                        <p class="text-xs text-(--surface-muted-content-color)">
+                          <%= placed ? t("recording_studio.library.picker.already_placed") : adapter.type_label %>
+                        </p>
+                      </div>
+                    </div>
+                  <% end %>
+                <% end %>
+              </label>
+            <% end %>
+          <% end %>
         </div>
       <% end %>
+    <% else %>
+      <div class="order-3 col-span-full">
+        <%= render FlatPack::EmptyState::Component.new(
+          title: @query.present? || @type.present? ? t("recording_studio.library.picker.empty_search_title") : t("recording_studio.library.picker.empty_title"),
+          icon: :magnifying_glass
+        ) %>
+      </div>
     <% end %>
-  <% else %>
-    <%= render FlatPack::EmptyState::Component.new(
-      title: @query.present? || @type.present? ? t("recording_studio.library.picker.empty_search_title") : t("recording_studio.library.picker.empty_title"),
-      icon: :magnifying_glass
-    ) %>
-  <% end %>
+
+    <%= form_with url: picker_url, method: :get, local: true,
+                  class: ["min-w-0 order-2", ("lg:col-start-2 lg:row-start-1" if show_add_selected)].compact.join(" "),
+                  html: { data: modal_request? ? { fp_nav: "replace" } : {} } do %>
+      <% navigation_params.each do |key, value| %>
+        <%= hidden_field_tag key, value %>
+      <% end %>
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-end">
+        <%= render FlatPack::Search::Component.new(
+          name: :q,
+          value: @query,
+          placeholder: t("recording_studio.library.picker.search_placeholder"),
+          max_width: :lg,
+          aria: { label: t("recording_studio.library.picker.search_aria") }
+        ) %>
+        <% if @picker_libraries.size > 1 && @library.present? %>
+          <%= render FlatPack::Select::Component.new(
+            name: :library_id,
+            label: t("recording_studio.library.picker.library_filter"),
+            options: @picker_libraries.map { |library| [library_title_for(library), library.id.to_s] },
+            value: @library.id.to_s,
+            onchange: "this.form.requestSubmit()"
+          ) %>
+        <% elsif @library.present? %>
+          <%= hidden_field_tag :library_id, @library.id %>
+        <% end %>
+        <% if @type_options.size > 1 %>
+          <%= render FlatPack::Select::Component.new(
+            name: :type,
+            label: t("recording_studio.library.picker.type_filter"),
+            options: [[t("recording_studio.library.picker.type_all"), ""]] + @type_options,
+            value: @type.to_s,
+            onchange: "this.form.requestSubmit()"
+          ) %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
 </div>

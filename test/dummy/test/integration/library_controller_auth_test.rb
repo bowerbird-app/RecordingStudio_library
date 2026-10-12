@@ -146,6 +146,8 @@ class LibraryControllerAuthTest < ActionDispatch::IntegrationTest
     assert_select "body[data-recording-studio-default-layout='true']"
     assert_select "nav, [class*='page-nav']"
     refute_match(/Return to source page/, @response.body)
+    refute_includes @response.body, "Sign out"
+    refute_includes @response.body, "recording-studio-root-switchable--root-switch-dropdown"
   end
 
   private

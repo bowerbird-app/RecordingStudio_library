@@ -12,7 +12,6 @@ en:
         return_to_source: "Return to source page"
       library:
         title: "Library"
-        add: "Add sample"
         grid: "Grid"
         list: "List"
         view_mode: "View mode"

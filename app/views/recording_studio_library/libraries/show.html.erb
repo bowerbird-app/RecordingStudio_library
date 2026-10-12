@@ -16,13 +16,15 @@
   <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
     <div class="flex flex-wrap items-center gap-3">
       <% if @can_add %>
-        <%= render FlatPack::Button::Component.new(
-          text: t("recording_studio.library.library.add"),
-          style: :primary,
-          size: :md,
-          icon: "plus",
-          href: library_new_item_path_for(@library, **navigation_params)
-        ) %>
+        <% library_addable_types_for(@library).each do |type| %>
+          <%= render FlatPack::Button::Component.new(
+            text: library_type_label_for(type),
+            style: :primary,
+            size: :md,
+            icon: "plus",
+            href: library_new_item_path_for(@library, type: type, **navigation_params)
+          ) %>
+        <% end %>
       <% end %>
 
       <% if @items.any? || @view_mode.present? %>

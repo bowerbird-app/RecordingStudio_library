@@ -2,17 +2,8 @@
 <% picker_body = capture { render "picker_body" } %>
 
 <% if modal_request? %>
-  <%= flat_pack_modal_screen(modal_id: @modal_id, title: picker_title) do |screen| %>
+  <%= flat_pack_modal_screen(modal_id: @modal_id, title: picker_title) do %>
     <%= picker_body %>
-    <% screen.footer do %>
-      <%= render FlatPack::Button::Component.new(
-        text: t("recording_studio.library.picker.add_selected"),
-        style: :primary,
-        size: :md,
-        type: "submit",
-        form: "library-picker-form"
-      ) %>
-    <% end %>
   <% end %>
 <% else %>
   <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">

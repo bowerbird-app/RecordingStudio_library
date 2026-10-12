@@ -104,13 +104,35 @@ class RecordingStudioLibraryTest < Minitest::Test
     body = File.read(File.expand_path("../app/views/recording_studio_library/pickers/_picker_body.html.erb", __dir__))
 
     assert_includes picker, "flat_pack_modal_screen"
+    refute_includes picker, "screen.footer"
     assert_includes body, "fp_nav"
     assert_includes body, "item_recording_ids[]"
     assert_includes body, "FlatPack::Checkbox::Component"
     assert_includes body, "FlatPack::Card::Component"
     assert_includes body, 'card.media(aspect_ratio: "4/3", padding: :none)'
+    assert_includes body, "flat-pack--unsaved-changes"
+    assert_includes body, "style: :default"
+    assert_includes body, "flat-pack--unsaved-changes-target"
     refute_includes body, "border-(--surface-border-color)"
     refute_includes body, "aspect-4/3 overflow-hidden"
+    refute_includes body, "unless modal_request?"
+  end
+
+  def test_library_add_button_uses_adapter_type_label_and_plus_icon
+    show = File.read(File.expand_path("../app/views/recording_studio_library/libraries/show.html.erb", __dir__))
+
+    assert_includes show, "library_addable_types_for"
+    assert_includes show, "library_type_label_for"
+    assert_includes show, 'icon: "plus"'
+    refute_includes show, "recording_studio.library.library.add"
+  end
+
+  def test_dummy_library_screens_do_not_fill_page_nav_right
+    helper = File.read(File.expand_path("dummy/app/helpers/application_helper.rb", __dir__))
+
+    refute_includes helper, "def library_screen_page_nav"
+    assert_includes helper, "dummy_page_nav_right_chrome"
+    assert_includes helper, "recording_studio_root_switch_dropdown"
   end
 
   def test_library_grid_uses_flatpack_card_media_flush_to_the_top

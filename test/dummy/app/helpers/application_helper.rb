@@ -10,12 +10,6 @@ module ApplicationHelper
     dummy_page_nav_right_chrome
   end
 
-  def library_screen_page_nav(**options)
-    super
-    dummy_page_nav_right_chrome
-    nil
-  end
-
   def dummy_page_nav_right_chrome
     recording_studio_page_nav_right do
       concat recording_studio_root_switch_dropdown(style: :ghost, size: :md)
