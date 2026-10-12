@@ -6,4 +6,5 @@ class Showcase < ApplicationRecord
   )
   include RecordingStudio::Capabilities::Orderable.to if defined?(RecordingStudio::Capabilities::Orderable)
   include RecordingStudio::Capabilities::Trashable.to if defined?(RecordingStudio::Capabilities::Trashable)
+  RecordingStudio.enable_capability(:accessible, on: self) if defined?(RecordingStudioAccessible)
 end

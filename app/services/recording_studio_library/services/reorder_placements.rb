@@ -19,7 +19,7 @@ module RecordingStudioLibrary
         require_recording_studio!
         parent = require_parent!
         assert_placement_enabled!(parent)
-        authorize_placement!(action: :upload, actor: resolve_actor(actor), recording: parent)
+        authorize_placement!(action: :revise, actor: resolve_actor(actor), recording: parent)
         raise ArgumentError, I18n.t("recording_studio.library.errors.cannot_reorder") unless orderable?(parent)
 
         if moving_recording_id.present?

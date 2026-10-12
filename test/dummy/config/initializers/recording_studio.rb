@@ -30,3 +30,9 @@ RecordingStudio.configure do |config|
   # Recordable duplication strategy for revisions
   config.recordable_dup_strategy = :dup
 end
+
+Rails.application.config.to_prepare do
+  next unless defined?(RecordingStudioAccessible) && defined?(RecordingStudioLibrary::SampleItem)
+
+  RecordingStudio.enable_capability(:accessible, on: RecordingStudioLibrary::SampleItem)
+end

@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioLibraryTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.1.0", ::RecordingStudioLibrary::VERSION
+    assert_equal "0.1.1", ::RecordingStudioLibrary::VERSION
   end
 
   def test_engine_exists
@@ -96,6 +96,10 @@ class RecordingStudioLibraryTest < Minitest::Test
     assert_includes source, "library_reorder_placements_path_for"
     assert_includes source, "navigable: true"
     assert_includes source, "FlatPack::Modal::Component"
+    assert_includes source, "handle_selector"
+    assert_includes source, "data-library-placement-handle"
+    assert_includes source, "library_new_item_path_for"
+    refute_includes source, "recording_picker_path"
     refute_includes source, "reorder_recording_placements_path"
   end
 
@@ -152,12 +156,15 @@ class RecordingStudioLibraryTest < Minitest::Test
     helper = File.read(File.expand_path("../app/helpers/recording_studio_library/application_helper.rb", __dir__))
     assert_includes helper, "def library_screen_page_nav"
     assert_includes helper, "recording_studio_page_nav"
+    assert_includes helper, "def library_host_page_nav_available?"
+    assert_includes helper, "FlatPack::PageNav::Component"
   end
 
   def test_find_library_is_find_only
     source = File.read(File.expand_path("../lib/recording_studio_library.rb", __dir__))
 
     assert_includes source, "def find_library(parent, key: :default)"
+    assert_includes source, "def update_placements!"
     refute_includes source, "alias include_trashed_images"
   end
 

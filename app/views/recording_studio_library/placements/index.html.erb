@@ -1,5 +1,7 @@
 <% navigation_params = library_navigation_params %>
 <% picker_src = library_picker_path_for(@recording, **navigation_params.merge(modal: "1", modal_id: @picker_modal_id)) %>
+<% upload_path = @library && library_new_item_path_for(@library, **navigation_params) %>
+<% handle_selector = "[data-library-placement-handle]" %>
 
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= library_screen_page_nav(
@@ -25,12 +27,15 @@
           modal_id: @picker_modal_id
         }
       ) %>
-      <%= render FlatPack::Button::Component.new(
-        text: t("recording_studio.library.picker.title"),
-        style: :secondary,
-        size: :md,
-        href: library_picker_path_for(@recording, **navigation_params)
-      ) %>
+      <% if upload_path.present? %>
+        <%= render FlatPack::Button::Component.new(
+          text: t("recording_studio.library.placements.upload"),
+          style: :secondary,
+          size: :md,
+          icon: "arrow-up-tray",
+          href: upload_path
+        ) %>
+      <% end %>
     </div>
 
     <%= render FlatPack::Modal::Component.new(
@@ -50,11 +55,21 @@
       orderable_url: @can_reorder ? library_reorder_placements_path_for(@recording, **navigation_params) : nil,
       param_uuid_name: "moving_recording_id",
       param_target_position_name: "target_position",
+      handle_selector: @can_reorder ? handle_selector : nil,
       divider: true
     ) do %>
       <% @resolved.each do |resolved| %>
         <%= render FlatPack::List::Item.new(id: resolved.placement_recording.id) do %>
           <div class="flex flex-1 items-center gap-3">
+            <% if @can_reorder %>
+              <button type="button"
+                      class="inline-flex shrink-0 cursor-grab items-center justify-center text-(--surface-muted-content-color)"
+                      data-library-placement-handle="true"
+                      aria-label="<%= t("recording_studio.library.placements.reorder_aria", title: resolved.adapter.title) %>"
+                      aria-keyshortcuts="ArrowUp ArrowDown">
+                <%= render FlatPack::Shared::IconComponent.new(name: "bars-3", size: :sm) %>
+              </button>
+            <% end %>
             <div class="h-12 w-12 shrink-0 overflow-hidden rounded-lg">
               <%= resolved.adapter.preview(self) %>
             </div>

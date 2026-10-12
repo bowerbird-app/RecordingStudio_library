@@ -20,7 +20,9 @@ RecordingStudioLibrary.configure do |config|
   # Label used when listing usages of an item.
   # config.place_label = ->(parent_recording) { parent_recording.recordable.try(:title) }
 
-  # Opt-in unfiltered visibility for system jobs. Anonymous visitors otherwise
-  # go through Accessible like everyone else.
+  # Prefer RecordingStudioLibrary.resolve(holder, actor:, unfiltered: true) for
+  # a single trusted system call. This global flag remains for jobs that cannot
+  # pass that keyword on every resolve. Anonymous visitors otherwise go through
+  # Accessible like everyone else.
   # config.unfiltered_access = false
 end

@@ -79,6 +79,28 @@ class AdaptersTest < Minitest::Test
     assert_includes html, "h-full w-full"
   end
 
+  def test_dummy_permits_sample_item_fields_and_ignores_unknown_keys
+    adapter = dummy_adapter
+
+    permitted = adapter.permit_item_attrs(
+      title: "Lobby still",
+      summary: "From PATCH",
+      extra: "ignored"
+    )
+
+    assert_equal({ title: "Lobby still", summary: "From PATCH" }, permitted)
+  end
+
+  def test_base_item_paths_are_blank
+    adapter = RecordingStudioLibrary::Adapters::Base.new(
+      Recording.new(recordable: Sample.new(title: "Notes"), recordable_type: "Page")
+    )
+
+    assert_nil adapter.item_path(nil)
+    assert_nil adapter.new_item_path(nil, nil)
+    assert_equal %i[title], adapter.permitted_item_keys
+  end
+
   def test_dummy_type_label_falls_back_for_other_recordables
     recording = Recording.new(
       recordable: Sample.new(title: "Stage notes"),

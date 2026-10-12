@@ -3,15 +3,16 @@
 module RecordingStudioLibrary
   module Services
     class ResolvePlacements < ApplicationService
-      def initialize(parent_recording:, include_trashed: false, actor: nil)
+      def initialize(parent_recording:, include_trashed: false, actor: nil, unfiltered: false)
         @parent_recording = parent_recording
         @include_trashed = include_trashed
         @actor = actor
+        @unfiltered = unfiltered
       end
 
       private
 
-      attr_reader :parent_recording, :include_trashed, :actor
+      attr_reader :parent_recording, :include_trashed, :actor, :unfiltered
 
       def perform
         require_recording_studio!
@@ -87,13 +88,18 @@ module RecordingStudioLibrary
         return false if Placements.library_recording?(item_recording)
         return false if Placements.placement_recording?(item_recording)
         return false unless include_trashed || item_recording.try(:trashed_at).blank?
+        return false unless live_library_item?(item_recording)
         return false unless visible_to_actor?(item_recording)
 
         true
       end
 
       def visible_to_actor?(item_recording)
-        RecordingStudioLibrary::Authorization.visible?(actor: actor, recording: item_recording)
+        RecordingStudioLibrary::Authorization.visible?(
+          actor: actor,
+          recording: item_recording,
+          unfiltered: unfiltered
+        )
       end
     end
   end

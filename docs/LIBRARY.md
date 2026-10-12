@@ -9,17 +9,17 @@ This gem is the generic extraction of the library/placement design from Recordin
 - A thin keyed **library** on a workspace (or any parent that opts in). Hosts mount it. People never create, title, or index it.
 - **Items** stay their own recordable types as ordinary children of the library. There is no wrapper type.
 - **Placements** are pointers: they store the target item's recording id and an Orderable position. Captions and titles live on the item.
-- A placement may point at a same-workspace item that is not in a library. It never points across workspaces.
+- A placement may only point at an item that lives in a live library in the same workspace. It never points across workspaces.
 
 ```
 Workspace
 ├── Library (key: default)
 │   ├── Sample / image / video   <- the item gem's own recordable
 │   └── Sample
-├── Page                         <- outside the library, still placeable
+├── Page                         <- outside the library, not placeable
 └── Showcase
     ├── Placement -> sample
-    └── Placement -> page
+    └── Placement -> sample
 ```
 
 ## Capabilities
@@ -40,7 +40,7 @@ include RecordingStudio::Capabilities::Placeable.to(
 
 `Library.to` on a parent means that parent can hold libraries of those item types/keys. Those lists are enforced whenever an item is recorded into a library (`place_new!`, sample create, `RecordLibraryItem`). Empty lists mean unrestricted.
 
-`Placeable.to` on a holder means that holder can hold placements of those types from those libraries. Reorder and add both use the `:upload` role, matching the placements editor.
+`Placeable.to` on a holder means that holder can hold placements of those types from those libraries. Add uses the `:upload` role. Reorder and collection PATCH use `:revise` on the holder. Item field saves also require `:revise` on the item's library.
 
 ## Adapter registry
 
@@ -50,7 +50,7 @@ Hosts **must register an adapter per recordable type** they place or create:
 RecordingStudioLibrary.register_adapter("RecordingStudioAttachable::Attachment", AttachableAdapter)
 ```
 
-An adapter supplies thumbnail/preview, title, create/edit fields, full view, search text, and optionally a type label and icon. Unregistered types fall back to `RecordingStudioLibrary::Adapters::Base` for display only. `place_new!` refuses them. The gem ships `RecordingStudioLibrary::Adapters::Dummy` for `RecordingStudioLibrary::SampleItem` so the dummy app and tests work without Attachable or Video.
+An adapter supplies thumbnail/preview, title, create/edit fields, full view, search text, and optionally a type label, icon, `item_path` / `new_item_path`, and `permitted_item_keys` for collection PATCH. Unregistered types fall back to `RecordingStudioLibrary::Adapters::Base` for display only. `place_new!` refuses them. The gem ships `RecordingStudioLibrary::Adapters::Dummy` for `RecordingStudioLibrary::SampleItem` so the dummy app and tests work without Attachable or Video. Hosts like Attachable should implement `item_path` and `new_item_path` on the adapter instead of prepending helper overrides.
 
 ## Helpers
 
@@ -61,16 +61,21 @@ RecordingStudioLibrary.place!(holder, item)
 RecordingStudioLibrary.place_new!(holder, library:, type:, attrs: {})
 RecordingStudioLibrary.placements(holder) # same as resolve
 RecordingStudioLibrary.reorder!(holder, ids)
+RecordingStudioLibrary.update_placements!(holder, items:, ordered_recording_ids:)
 RecordingStudioLibrary.remove!(placement)
-RecordingStudioLibrary.resolve(holder, actor:)
+RecordingStudioLibrary.resolve(holder, actor:, unfiltered: false)
 RecordingStudioLibrary.usages(item)
 ```
 
-`library_for` is the write path. Screens that only look up a library use `find_library` so a GET cannot create one.
+`library_for` is the write path. Call it before a library page or picker can find a library. Screens that only look up a library use `find_library` so a GET cannot create one.
 
-`place!` requires the actor can view the item, the item is in the same workspace, and the holder allows that type. `place_new!` checks the registered adapter, library types/keys, holder types, and upload rights on both the holder and the library, then records the item and places it in one transaction.
+`place!` requires the actor can view the item, the item is in a live library in the same workspace, and the holder allows that type. `place_new!` checks the registered adapter, library types/keys, holder types, and upload rights on both the holder and the library, then records the item and places it in one transaction.
 
-`resolve` drops trashed or missing items, refuses cross-workspace pointers, and never returns items the actor cannot see. Anonymous visitors go through Accessible. Set `RecordingStudioLibrary.configuration.unfiltered_access = true` only for trusted system jobs that must see everything.
+`resolve` drops trashed or missing items, items that are not in a live library, refuses cross-workspace pointers, and never returns items the actor cannot see. Anonymous visitors go through Accessible. Trusted system jobs should pass `unfiltered: true` on that call. `configuration.unfiltered_access` remains as a process-wide fallback.
+
+Authorization fails closed when Accessible is not loaded and no `authorize_with` adapter is set.
+
+Collection editors `PATCH recording_placements_path(holder)` with `items` (item or placement id → adapter fields) and optional `ordered_recording_ids` / `moving_recording_id` + `target_position`. Library authorizes `:revise` on the holder and on each item's library, filters attributes with the adapter's `permitted_item_keys`, saves through the item adapter, then calls `reorder!`. Foreign placement ids and items that are not on the holder are refused.
 
 Trashing an in-use item warns with its usages. Deleting the item removes its placements. Trashable and Orderable APIs are reused as-is.
 
@@ -80,15 +85,17 @@ All screens are Flatpack ViewComponents.
 
 - Library page: list and grid, mountable, `library_path_for(parent_or_library)`.
 - Multi-select picker with search and type filter. Lists **library items only**. Works standalone and as a Flatpack navigable modal (`flat_pack_modal_screen`, `data-fp-nav`). Hosts must pin `@hotwired/turbo-rails` so the modal's turbo-frame can load. Tiles are Flatpack Cards wrapping a checkbox.
-- Placements editor: Orderable list plus remove. Add opens the picker in a navigable modal. Reorder uses the same `:upload` permission as add.
+- Placements editor: Orderable list with a drag handle, remove, one "Add from library" button (picker modal), and Upload (adapter `new_item_path`). Drag-reorder and collection PATCH both use `:revise` on the holder. Add still uses `:upload`.
 
-When the host uses Recording Studio's default layout, engine screens fill that layout's PageNav slots instead of rendering a second PageNav.
+When the host uses Recording Studio's default layout and exposes `recording_studio_page_nav`, engine screens fill that layout's PageNav slots instead of rendering a second PageNav, and they load `flat_pack/application` plus the rounded theme on `body`. If that helper is missing, Library renders its own Flatpack PageNav so the back control is not lost.
 
 Staff admin UI belongs in Recording Studio Admin, not here.
 
 ### Flatpack gaps (this gem did not invent replacements)
 
 - No dedicated multi-select tile. Picker tiles are `FlatPack::Card` wrapping `FlatPack::Checkbox`. Sample create/edit uses `FlatPack::TextInput` and `FlatPack::TextArea`.
+- List has `handle_selector` but no Handle component. CollectionEditor's handle is private to that component. Placements reuse `bars-3` plus `handle_selector`.
+- Recording Studio's default layout puts `data-theme` on `body`, not `html`. Library does not change Flatpack or Recording Studio.
 
 ## Install
 
@@ -104,4 +111,4 @@ Staff admin UI belongs in Recording Studio Admin, not here.
 - It does not replace Attachable or Video. Those gems keep their recordables and will register adapters in a later phase.
 - It does not ship a separate admin surface.
 - It does not invent captions, titles, or file handling on placements.
-- The picker does not list same-workspace items that live outside a library. Use `place!` for that case.
+- The picker does not list same-workspace items that live outside a library. `place!` and `resolve` refuse those items too.

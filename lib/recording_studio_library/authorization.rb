@@ -62,9 +62,12 @@ module RecordingStudioLibrary
         )
       end
 
-      def visible?(actor:, recording:)
-        return true if RecordingStudioLibrary.configuration.unfiltered_access
-        return true unless accessible_loaded?
+      def visible?(actor:, recording:, unfiltered: false)
+        return true if unfiltered || RecordingStudioLibrary.configuration.unfiltered_access
+
+        adapter = RecordingStudioLibrary.configuration.authorize_with
+        return !!adapter.call(action: :view, actor: actor, recording: recording, role: :view) if adapter.respond_to?(:call)
+        return false unless accessible_loaded?
 
         RecordingStudioAccessible::Authorization.allowed?(actor: actor, recording: recording, role: :view)
       rescue StandardError
@@ -96,7 +99,7 @@ module RecordingStudioLibrary
 
         adapter = RecordingStudioLibrary.configuration.authorize_with
         return !!adapter.call(action: action, actor: actor, recording: recording, role: role) if adapter.respond_to?(:call)
-        return true unless accessible_loaded?
+        return false unless accessible_loaded?
 
         RecordingStudioAccessible::Authorization.allowed?(actor: actor, recording: recording, role: role)
       end

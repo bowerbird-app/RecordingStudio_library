@@ -18,7 +18,10 @@ module RecordingStudioLibrary
     private
 
     def current_library_actor
-      return Current.actor if defined?(Current) && Current.respond_to?(:actor)
+      if defined?(Current) && Current.respond_to?(:actor)
+        actor = Current.actor
+        return actor unless actor.nil?
+      end
       return current_user if respond_to?(:current_user, true)
 
       nil

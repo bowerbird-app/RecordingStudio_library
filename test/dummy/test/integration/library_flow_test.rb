@@ -178,6 +178,29 @@ class LibraryFlowTest < ActionDispatch::IntegrationTest
     assert_includes @response.body, "moving_recording_id"
     assert_includes @response.body, "placements/reorder"
     assert_includes @response.body, "data-modal-id"
+    assert_includes @response.body, "data-library-placement-handle"
+    assert_includes @response.body, "Add from library"
+    assert_includes @response.body, "Upload"
+  end
+
+  test "placements patch updates adapter fields and reorders" do
+    first = record_sample("Patch first")
+    second = record_sample("Patch second")
+    place_a = RecordingStudioLibrary.place!(@showcase_recording, first, actor: @user)
+    place_b = RecordingStudioLibrary.place!(@showcase_recording, second, actor: @user)
+
+    patch recording_studio_library.recording_placements_path(@showcase_recording), params: {
+      items: { first.id => { title: "Renamed still", summary: "From PATCH", extra: "ignored" } },
+      ordered_recording_ids: [place_b.id, place_a.id]
+    }
+
+    assert_redirected_to recording_studio_library.recording_placements_path(@showcase_recording)
+    assert_equal I18n.t("recording_studio.library.flashes.updated"), flash[:notice]
+    first.reload
+    assert_equal "Renamed still", first.recordable.title
+    assert_equal "From PATCH", first.recordable.summary
+    ordered = RecordingStudioLibrary.resolve(@showcase_recording, actor: @user).map { |entry| entry.placement_recording.id }
+    assert_equal [place_b.id, place_a.id], ordered.first(2)
   end
 
   test "home page links to library picker and placements" do

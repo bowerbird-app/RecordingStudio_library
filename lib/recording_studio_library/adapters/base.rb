@@ -75,7 +75,59 @@ module RecordingStudioLibrary
         search_text.downcase.include?(query.to_s.downcase)
       end
 
+      def item_path(_view, **_options)
+        nil
+      end
+
+      def new_item_path(_view, _library_recording, **_options)
+        nil
+      end
+
+      def permitted_item_keys
+        %i[title]
+      end
+
+      def permit_item_attrs(attrs)
+        return {} if attrs.blank?
+
+        hash = attrs.respond_to?(:to_unsafe_h) ? attrs.to_unsafe_h : attrs.to_h
+        keys = hash.each_with_object({}) { |(key, value), memo| memo[key.to_s] = value }
+        permitted_item_keys.each_with_object({}) do |key, memo|
+          next unless keys.key?(key.to_s)
+
+          memo[key] = keys[key.to_s]
+        end
+      end
+
+      def update_item!(attrs, actor: nil)
+        permitted = permit_item_attrs(attrs)
+        return recordable if permitted.blank? || recording.blank?
+
+        reviser = reviser_for(recording)
+        if reviser
+          reviser.revise(recording, actor: actor) { |copy| copy.assign_attributes(permitted) }
+        else
+          assign_without_revision(permitted)
+        end
+      end
+
       private
+
+      def reviser_for(item_recording)
+        root = item_recording.try(:root_recording)
+        return root if root.respond_to?(:revise)
+        return item_recording if item_recording.respond_to?(:revise)
+
+        nil
+      end
+
+      def assign_without_revision(permitted)
+        return recordable unless recordable.respond_to?(:assign_attributes)
+
+        recordable.assign_attributes(permitted)
+        recordable.save! if recordable.respond_to?(:save!)
+        recordable
+      end
 
       def recordable_value(method_name)
         return unless recordable.respond_to?(method_name)
