@@ -62,14 +62,14 @@ module RecordingStudioLibrary
       ensure_library_flatpack_theme
       back_label ||= t("recording_studio.library.navigation.back")
       anchor_label ||= t("recording_studio.library.navigation.return_to_source")
-      if library_host_page_nav_available?
-        return fill_host_library_page_nav(title:, back_url:, back_label:, anchor_url:, anchor_label:)
-      end
+      return fill_host_library_page_nav(title:, back_url:, back_label:, anchor_url:, anchor_label:) if library_host_page_nav_available?
 
       render FlatPack::PageNav::Component.new(
         back_icon: "arrow-left",
+        back_tooltip: back_label,
         back_label: back_label,
-        anchor_url: anchor_url.presence || back_url,
+        anchor_href: anchor_url.presence || back_url,
+        anchor_tooltip: anchor_label,
         anchor_label: anchor_label
       )
     end

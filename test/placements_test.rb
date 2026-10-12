@@ -663,7 +663,7 @@ class PlacementsTest < Minitest::Test
         %i[title]
       end
 
-      def update_item!(attrs, actor: nil)
+      def update_item!(attrs, _actor: nil)
         recordable.assign_attributes(attrs)
         recordable.save! if recordable.respond_to?(:save!)
         recordable

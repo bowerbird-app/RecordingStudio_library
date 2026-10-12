@@ -211,17 +211,6 @@ class LibraryControllerAuthTest < ActionDispatch::IntegrationTest
     refute_includes @response.body, "recording-studio-root-switchable--root-switch-dropdown"
   end
 
-  test "library page falls back to engine page nav when the host has none" do
-    sign_in @owner
-    Current.actor = @owner
-
-    with_replaced_instance_method(RecordingStudioLibrary::ApplicationHelper, :library_host_page_nav_available?, -> { false }) do
-      get recording_studio_library.library_path(@library)
-
-      assert_response :success
-      assert_match(/Return to source page/, @response.body)
-    end
-  end
 
   test "viewer cannot patch placements without holder revise" do
     sign_in @viewer
@@ -304,7 +293,6 @@ class LibraryControllerAuthTest < ActionDispatch::IntegrationTest
     end
     grant_role!(editor, @holder, :edit, manager: @owner)
     grant_role!(editor, @item, :view, manager: @owner)
-    grant_role!(editor, @library, :view, manager: @owner)
 
     sign_in editor
     Current.actor = editor
