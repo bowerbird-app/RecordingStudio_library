@@ -32,7 +32,7 @@ class RecordingStudioLibraryTest < Minitest::Test
     [
       'github: "bowerbird-app/RecordingStudio", tag: "v4.4.0"',
       'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.15.0"',
-      'github: "bowerbird-app/RecordingStudio_orderable", tag: "v0.2.8"',
+      'github: "bowerbird-app/RecordingStudio_orderable", tag: "v0.3.0"',
       'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.8.0"',
       'github: "bowerbird-app/flatpack", tag: "v0.1.227"'
     ].each do |pin|

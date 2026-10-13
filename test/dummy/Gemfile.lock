@@ -26,10 +26,10 @@ GIT
 
 GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_orderable.git
-  revision: 61c08206a0d99961d442d508efe9cd4fe2c7cdd8
-  tag: v0.2.8
+  revision: f14f2376b8db792b5aba2cc29189c98a2ebadaaa
+  tag: v0.3.0
   specs:
-    recording_studio_orderable (0.2.3)
+    recording_studio_orderable (0.3.0)
       flat_pack (>= 0.1.74)
       rails (~> 8.1.0)
       recording_studio (~> 4.1)
@@ -626,7 +626,7 @@ CHECKSUMS
   recording_studio_accessible (0.15.0)
   recording_studio_library (0.1.0)
   recording_studio_metrics (0.2.2)
-  recording_studio_orderable (0.2.3)
+  recording_studio_orderable (0.3.0)
   recording_studio_root_switchable (0.8.0)
   recording_studio_trashable (0.8.0)
   regexp_parser (2.13.1) sha256=5aedb6b7c35688f51e86eef17a15374dfd287c83f4ca644b2c5f3ec50a33b44b
