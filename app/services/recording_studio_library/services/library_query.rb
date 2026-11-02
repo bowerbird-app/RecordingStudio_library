@@ -58,8 +58,6 @@ module RecordingStudioLibrary
 
         resolver = RecordingStudioLibrary.configuration.library_label
         resolver.call(normalized).to_s.strip.presence || humanized_key(normalized)
-      rescue StandardError
-        humanized_key(normalized || DEFAULT_KEY)
       end
 
       def normalize_key(key)
@@ -115,14 +113,10 @@ module RecordingStudioLibrary
         relation = relation.includes(:recordable) if relation.respond_to?(:includes)
         relation = relation.order(:created_at, :id) if relation.respond_to?(:order)
         relation.to_a
-      rescue StandardError
-        []
       end
 
       def library_enabled?(recording)
         RecordingStudioLibrary::Authorization.library_enabled?(recording: recording)
-      rescue StandardError
-        false
       end
 
       def allowed_item_types_for(library_recording)

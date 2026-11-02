@@ -40,8 +40,6 @@ module RecordingStudioLibrary
         relation = relation.includes(:recordable) if relation.respond_to?(:includes)
         relation = relation.order(:created_at, :id) if relation.respond_to?(:order)
         Array(relation).reject { |recording| Placements.placement_recording?(recording) }
-      rescue StandardError
-        []
       end
 
       def visible?(recording)

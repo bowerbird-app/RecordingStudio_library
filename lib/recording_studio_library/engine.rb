@@ -6,10 +6,14 @@ module RecordingStudioLibrary
 
     class << self
       def apply_model_extensions(target)
+        return unless target
+
         apply_extensions(target, extensions_for(:model, extension_keys_for(target)))
       end
 
       def apply_controller_extensions(target)
+        return unless target
+
         apply_extensions(target, extensions_for(:controller, extension_keys_for(target)))
       end
 
@@ -57,10 +61,34 @@ module RecordingStudioLibrary
       end
 
       def install_purge_hook
-        return unless defined?(RecordingStudio::Recording)
-        return if RecordingStudio::Recording.included_modules.include?(RecordingStudioLibrary::Purge)
+        return unless defined?(RecordingStudio)
+        return if @library_purge_hook_registered
 
-        RecordingStudio::Recording.include(RecordingStudioLibrary::Purge)
+        RecordingStudio.configuration.hooks.extend_model(:recording) do
+          include RecordingStudioLibrary::Purge unless included_modules.include?(RecordingStudioLibrary::Purge)
+        end
+        @library_purge_hook_registered = true
+      end
+
+      def load_yaml_configuration(app)
+        app.config_for(:recording_studio_library)
+      rescue RuntimeError => e
+        raise unless missing_yaml_configuration?(e)
+
+        nil
+      end
+
+      def merge_x_configuration(app)
+        return unless app.config.respond_to?(:x) && app.config.x.respond_to?(:recording_studio_library)
+
+        xcfg = app.config.x.recording_studio_library
+        if xcfg.respond_to?(:to_h)
+          RecordingStudioLibrary.configuration.merge!(xcfg.to_h)
+        elsif xcfg.respond_to?(:each_pair)
+          hash = {}
+          xcfg.each_pair { |key, value| hash[key] = value }
+          RecordingStudioLibrary.configuration.merge!(hash) if hash.any?
+        end
       end
 
       private
@@ -99,6 +127,10 @@ module RecordingStudioLibrary
       def identity_hash
         {}.compare_by_identity
       end
+
+      def missing_yaml_configuration?(error)
+        error.message.include?("No such file")
+      end
     end
 
     initializer "recording_studio_library.before_initialize", before: "recording_studio_library.load_config" do |_app|
@@ -107,32 +139,11 @@ module RecordingStudioLibrary
 
     initializer "recording_studio_library.load_config" do |app|
       if app.respond_to?(:config_for)
-        begin
-          yaml = begin
-            app.config_for(:recording_studio_library)
-          rescue StandardError
-            nil
-          end
-          RecordingStudioLibrary.configuration.merge!(yaml) if yaml.respond_to?(:each)
-        rescue StandardError
-          nil
-        end
+        yaml = RecordingStudioLibrary::Engine.load_yaml_configuration(app)
+        RecordingStudioLibrary.configuration.merge!(yaml) if yaml.respond_to?(:each)
       end
 
-      if app.config.respond_to?(:x) && app.config.x.respond_to?(:recording_studio_library)
-        xcfg = app.config.x.recording_studio_library
-        if xcfg.respond_to?(:to_h)
-          RecordingStudioLibrary.configuration.merge!(xcfg.to_h)
-        else
-          begin
-            hash = {}
-            xcfg.each_pair { |k, v| hash[k] = v } if xcfg.respond_to?(:each_pair)
-            RecordingStudioLibrary.configuration.merge!(hash) if hash&.any?
-          rescue StandardError
-            nil
-          end
-        end
-      end
+      RecordingStudioLibrary::Engine.merge_x_configuration(app)
 
       RecordingStudioLibrary.configuration.hooks.run(:on_configuration, RecordingStudioLibrary.configuration)
     end
@@ -152,28 +163,6 @@ module RecordingStudioLibrary
     initializer "recording_studio_library.action_view_helpers" do
       ActiveSupport.on_load(:action_view) do
         include RecordingStudioLibrary::ApplicationHelper
-      end
-    end
-
-    initializer "recording_studio_library.apply_model_extensions" do
-      config.to_prepare do
-        next unless defined?(ActiveRecord::Base)
-
-        ActiveRecord::Base.descendants.each do |model|
-          next if model.abstract_class?
-
-          RecordingStudioLibrary::Engine.apply_model_extensions(model)
-        end
-      end
-    end
-
-    initializer "recording_studio_library.apply_controller_extensions" do
-      config.to_prepare do
-        next unless defined?(ActionController::Base)
-
-        ActionController::Base.descendants.each do |controller|
-          RecordingStudioLibrary::Engine.apply_controller_extensions(controller)
-        end
       end
     end
   end

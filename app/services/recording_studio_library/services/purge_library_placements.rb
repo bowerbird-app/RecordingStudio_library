@@ -25,8 +25,6 @@ module RecordingStudioLibrary
         scope = RecordingStudio::Recording
         scope = scope.unscoped if scope.respond_to?(:unscoped)
         scope.where(parent_recording_id: library_recording.id).to_a
-      rescue StandardError
-        []
       end
     end
   end

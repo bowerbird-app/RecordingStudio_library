@@ -54,7 +54,7 @@ module RecordingStudioLibrary
       {
         layout: layout,
         auth_roles: auth_roles,
-        hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size)
+        hooks_registered: hooks.registered_counts
       }
     end
 

@@ -36,8 +36,6 @@ module RecordingStudioLibrary
       def picker_libraries_for(parent_recording)
         resolver = RecordingStudioLibrary.configuration.picker_libraries
         Array(resolver.call(parent_recording)).select { |library| RecordingStudioLibrary::Services::LibraryQuery.live?(library) }
-      rescue StandardError
-        []
       end
 
       def library_title(library_recording)
@@ -77,8 +75,6 @@ module RecordingStudioLibrary
         return if type.blank?
 
         RecordingStudio.recordable_declaration_for(type)&.label
-      rescue StandardError
-        nil
       end
     end
   end

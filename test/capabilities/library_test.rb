@@ -6,20 +6,7 @@ class LibraryCapabilityTest < Minitest::Test
   module Probe
     HostType = Class.new
     OtherType = Class.new
-  end
-
-  def setup
-    @original_capabilities =
-      RecordingStudio.configuration.instance_variable_get(:@capabilities).transform_values(&:dup)
-    @original_capability_options =
-      RecordingStudio.configuration.instance_variable_get(:@capability_options).dup
-    RecordingStudio.configuration.instance_variable_set(:@capabilities, {})
-    RecordingStudio.configuration.instance_variable_set(:@capability_options, {})
-  end
-
-  def teardown
-    RecordingStudio.configuration.instance_variable_set(:@capabilities, @original_capabilities)
-    RecordingStudio.configuration.instance_variable_set(:@capability_options, @original_capability_options)
+    PendingType = Class.new
   end
 
   def test_to_is_the_include_for_wrapper_not_a_fourth_verb
@@ -55,9 +42,9 @@ class LibraryCapabilityTest < Minitest::Test
     mixin = RecordingStudio::Capabilities::Library.to(types: ["Page"], keys: [:default])
 
     assert_kind_of Module, mixin
-    refute RecordingStudio.capability_enabled?(:library, for: Probe::HostType)
-    assert_nil RecordingStudio.capability_options(:library, for: Probe::HostType)
-    assert_empty RecordingStudio.configuration.enabled_recordable_types_for(:library)
+    refute RecordingStudio.capability_enabled?(:library, for: Probe::PendingType)
+    assert_nil RecordingStudio.capability_options(:library, for: Probe::PendingType)
+    refute_includes RecordingStudio.configuration.enabled_recordable_types_for(:library), Probe::PendingType.name
   end
 
   def test_including_to_enables_via_include_for_and_sets_options

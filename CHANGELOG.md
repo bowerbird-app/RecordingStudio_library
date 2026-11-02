@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-11-02
+
+### Changed
+- Item destroy still removes pointing placements, via Recording Studio's `extend_model(:recording)` hook instead of including into core `Recording`.
+- Hosts opt in to model and controller extensions by calling `RecordingStudioLibrary::Engine.apply_model_extensions` / `apply_controller_extensions`. The engine no longer walks every ActiveRecord and ActionController descendant.
+- Library access checks go through Accessible `allowed?` (or a host `authorize_with` adapter). Capability checks use `RecordingStudio.capability_enabled?(name, for: type)` only.
+- `place!` records placements with `RecordingStudio.record!` and fails when Orderable append fails.
+- Sample edit uses `revise`. Sample trash uses Trashable only.
+- YAML and `config.x` load no longer swallow unexpected errors. A missing YAML file is still skipped.
+
+### Upgrade notes
+- Call `apply_model_extensions` / `apply_controller_extensions` on the classes you register with `hooks.extend_model` / `extend_controller`.
+- `place!` raises when Orderable cannot append the new placement.
+- Sample PATCH writes a new recordable snapshot and an `updated` event. Sample DELETE requires Trashable.
+- `authorize_with` and `unfiltered_access` are unchanged in this release.
+
 ## [0.1.0] - 2026-10-10
 
 ### Added

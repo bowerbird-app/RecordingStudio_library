@@ -68,11 +68,15 @@ RecordingStudioLibrary.usages(item)
 
 `library_for` is the write path. Screens that only look up a library use `find_library` so a GET cannot create one.
 
-`place!` requires the actor can view the item, the item is in the same workspace, and the holder allows that type. `place_new!` checks the registered adapter, library types/keys, holder types, and upload rights on both the holder and the library, then records the item and places it in one transaction.
+`place!` records the placement with `RecordingStudio.record!`, then appends it with Orderable. It requires the actor can view the item, the item is in the same workspace, and the holder allows that type. If Orderable append fails, `place!` fails. `place_new!` checks the registered adapter, library types/keys, holder types, and upload rights on both the holder and the library, then records the item and places it in one transaction.
 
-`resolve` drops trashed or missing items, refuses cross-workspace pointers, and never returns items the actor cannot see. Anonymous visitors go through Accessible. Set `RecordingStudioLibrary.configuration.unfiltered_access = true` only for trusted system jobs that must see everything.
+`resolve` drops trashed or missing items, refuses cross-workspace pointers, and never returns items the actor cannot see. Access checks call Accessible `allowed?`. Anonymous visitors go through Accessible too. Set `RecordingStudioLibrary.configuration.unfiltered_access = true` only for trusted system jobs that must see everything. Hosts can still set `authorize_with` for a custom adapter.
 
-Trashing an in-use item warns with its usages. Deleting the item removes its placements. Trashable and Orderable APIs are reused as-is.
+Sample edit uses `revise`. Sample trash uses `recording_studio_trashable_trash!` only.
+
+Trashing an in-use item warns with its usages. Destroying the item recording removes placements that pointed at it. Register that cleanup with Recording Studio `hooks.extend_model(:recording)` (the engine does this). Trashable and Orderable APIs are reused as-is.
+
+Model and controller hook procs apply only when the host calls `RecordingStudioLibrary::Engine.apply_model_extensions(YourModel)` or `apply_controller_extensions(YourController)`.
 
 ## UI
 

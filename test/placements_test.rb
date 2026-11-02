@@ -54,13 +54,12 @@ class PlacementsTest < Minitest::Test
   ParentRecordable = Struct.new(:title, :name, keyword_init: true)
 
   def setup
-    stub_placement_class!
+    ensure_placement_class!
     stub_authorization!
   end
 
   def teardown
     restore_authorization!
-    restore_placement_class!
   end
 
   def test_place_records_a_pointer_and_appends_order
@@ -76,11 +75,13 @@ class PlacementsTest < Minitest::Test
       recordable: Item.new(id: "snap-1", title: "Hero")
     )
 
-    result = RecordingStudioLibrary::Services::Place.call(
-      parent_recording: parent,
-      item_recording: item,
-      actor: :ada
-    )
+    result = with_recorded_placement do
+      RecordingStudioLibrary::Services::Place.call(
+        parent_recording: parent,
+        item_recording: item,
+        actor: :ada
+      )
+    end
 
     assert result.success?
     assert_equal "item-1", result.value.recordable.item_recording_id
@@ -100,11 +101,13 @@ class PlacementsTest < Minitest::Test
       recordable: Item.new(id: "note-1", title: "Stage notes")
     )
 
-    result = RecordingStudioLibrary::Services::Place.call(
-      parent_recording: parent,
-      item_recording: item,
-      actor: :ada
-    )
+    result = with_recorded_placement do
+      RecordingStudioLibrary::Services::Place.call(
+        parent_recording: parent,
+        item_recording: item,
+        actor: :ada
+      )
+    end
 
     assert result.success?
     assert_equal "item-1", result.value.recordable.item_recording_id
@@ -353,13 +356,13 @@ class PlacementsTest < Minitest::Test
       root_recording_id: "root-1",
       recordable: Item.new(id: "snap-1", title: "Hidden")
     )
-    RecordingStudioLibrary::Authorization.define_singleton_method(:visible?) { |**| false }
-
-    result = RecordingStudioLibrary::Services::Place.call(
-      parent_recording: parent,
-      item_recording: item,
-      actor: :ada
-    )
+    result = RecordingStudioLibrary::Authorization.stub(:visible?, false) do
+      RecordingStudioLibrary::Services::Place.call(
+        parent_recording: parent,
+        item_recording: item,
+        actor: :ada
+      )
+    end
 
     assert result.failure?
     assert_match(/cannot place that item/, result.error)
@@ -387,16 +390,18 @@ class PlacementsTest < Minitest::Test
       placed: [placement]
     )
     seen = []
-    RecordingStudioLibrary::Authorization.define_singleton_method(:visible?) do |actor:, recording:|
+    visible = lambda do |actor:, recording:|
       seen << [actor, recording.id]
       false
     end
 
-    stub_recordings("item-1" => item) do
-      resolved = RecordingStudioLibrary::Placements.resolve(parent, actor: nil)
+    RecordingStudioLibrary::Authorization.stub(:visible?, visible) do
+      stub_recordings("item-1" => item) do
+        resolved = RecordingStudioLibrary::Placements.resolve(parent, actor: nil)
 
-      assert_empty resolved
-      assert_equal [[nil, "item-1"]], seen
+        assert_empty resolved
+        assert_equal [[nil, "item-1"]], seen
+      end
     end
   end
 
@@ -415,19 +420,49 @@ class PlacementsTest < Minitest::Test
 
   def test_place_new_refuses_library_type_allow_list_before_recording
     parent, library = place_new_fixtures
-    RecordingStudioLibrary::Authorization.define_singleton_method(:capability_options_for) do |capability, _recording|
+    options = lambda do |capability, _recording|
       capability == :library ? { types: ["Page"] } : {}
     end
 
-    result = RecordingStudioLibrary::Services::PlaceNew.call(
-      parent_recording: parent,
-      library: library,
-      type: "RecordingStudioLibrary::SampleItem",
-      actor: :ada
-    )
+    result = RecordingStudioLibrary::Authorization.stub(:capability_options_for, options) do
+      RecordingStudioLibrary::Services::PlaceNew.call(
+        parent_recording: parent,
+        library: library,
+        type: "RecordingStudioLibrary::SampleItem",
+        actor: :ada
+      )
+    end
 
     assert result.failure?
     assert_match(/cannot be placed/, result.error)
+  end
+
+  def test_place_fails_when_orderable_append_fails
+    root = Recording.new(id: "root-1", recordable_type: "Workspace")
+    library = Recording.new(id: "lib-1", recordable_type: "RecordingStudioLibrary::Library", parent_recording_id: "root-1", root_recording_id: "root-1")
+    parent = Recording.new(id: "gallery-1", recordable_type: "Showcase", root_recording_id: "root-1", root_recording: root)
+    item = Recording.new(
+      id: "item-1",
+      recordable_type: "RecordingStudioLibrary::SampleItem",
+      parent_recording_id: "lib-1",
+      parent_recording: library,
+      root_recording_id: "root-1",
+      recordable: Item.new(id: "snap-1", title: "Hero")
+    )
+    parent.define_singleton_method(:recording_studio_orderable_append!) do |*|
+      raise ArgumentError, "could not append"
+    end
+
+    result = with_recorded_placement do
+      RecordingStudioLibrary::Services::Place.call(
+        parent_recording: parent,
+        item_recording: item,
+        actor: :ada
+      )
+    end
+
+    assert result.failure?
+    assert_match(/could not append/, result.error)
   end
 
   def test_place_label_falls_back_to_title_then_type
@@ -466,7 +501,7 @@ class PlacementsTest < Minitest::Test
 
   private
 
-  def stub_placement_class!
+  def ensure_placement_class!
     return if defined?(RecordingStudioLibrary::Placement)
 
     RecordingStudioLibrary.const_set(
@@ -474,18 +509,15 @@ class PlacementsTest < Minitest::Test
       Class.new do
         attr_accessor :item_recording_id
 
+        def initialize(item_recording_id: nil)
+          @item_recording_id = item_recording_id
+        end
+
         def self.where(*)
           Struct.new(:pluck).new([])
         end
       end
     )
-    @created_placement_stub = true
-  end
-
-  def restore_placement_class!
-    return unless @created_placement_stub && RecordingStudioLibrary.const_defined?(:Placement)
-
-    RecordingStudioLibrary.send(:remove_const, :Placement)
   end
 
   def stub_authorization!
@@ -510,6 +542,22 @@ class PlacementsTest < Minitest::Test
     auth.define_singleton_method(:authorize_library!, @original_authorize_library) if @original_authorize_library
     auth.define_singleton_method(:visible?, @original_visible) if @original_visible
     auth.define_singleton_method(:capability_options_for, @original_options) if @original_options
+  end
+
+  def with_recorded_placement(&)
+    RecordingStudio.stub(:record!, method(:fake_record!), &)
+  end
+
+  def fake_record!(recordable:, parent_recording:, **)
+    child = Recording.new(
+      id: "place-#{Array(parent_recording.placed).size + 1}",
+      recordable_type: "RecordingStudioLibrary::Placement",
+      parent_recording_id: parent_recording.id,
+      root_recording_id: parent_recording.root_recording_id,
+      recordable: recordable
+    )
+    parent_recording.placed = Array(parent_recording.placed) + [child]
+    Struct.new(:recording).new(child)
   end
 
   def recording_class

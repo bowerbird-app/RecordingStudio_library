@@ -8,20 +8,6 @@ class PlaceableCapabilityTest < Minitest::Test
     OtherType = Class.new
   end
 
-  def setup
-    @original_capabilities =
-      RecordingStudio.configuration.instance_variable_get(:@capabilities).transform_values(&:dup)
-    @original_capability_options =
-      RecordingStudio.configuration.instance_variable_get(:@capability_options).dup
-    RecordingStudio.configuration.instance_variable_set(:@capabilities, {})
-    RecordingStudio.configuration.instance_variable_set(:@capability_options, {})
-  end
-
-  def teardown
-    RecordingStudio.configuration.instance_variable_set(:@capabilities, @original_capabilities)
-    RecordingStudio.configuration.instance_variable_set(:@capability_options, @original_capability_options)
-  end
-
   def test_to_is_the_include_for_wrapper_not_a_fourth_verb
     source = File.read(File.expand_path("../../lib/recording_studio/capabilities/placeable.rb", __dir__))
 

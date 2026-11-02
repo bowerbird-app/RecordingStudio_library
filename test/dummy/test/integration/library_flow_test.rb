@@ -153,6 +153,33 @@ class LibraryFlowTest < ActionDispatch::IntegrationTest
     assert_includes @response.body, "Sign out"
   end
 
+  test "sample update revises through Recording Studio" do
+    item = record_sample("Revise me")
+
+    assert_difference -> { item.events.where(action: "updated").count }, 1 do
+      patch recording_studio_library.sample_item_path(item), params: {
+        sample_item: { title: "Revised sample", summary: "After revise", accent: "sky" }
+      }
+    end
+
+    assert_redirected_to recording_studio_library.sample_item_path(item)
+    item.reload
+    assert_equal "Revised sample", item.recordable.title
+    assert_equal "After revise", item.recordable.summary
+    assert RecordingStudioLibrary::SampleItem.exists?(title: "Revise me")
+  end
+
+  test "sample destroy uses trashable" do
+    item = record_sample("Trash me")
+
+    delete recording_studio_library.sample_item_path(item)
+
+    assert_redirected_to recording_studio_library.library_path(@library)
+    item.reload
+    assert item.trashed_at.present?
+    assert RecordingStudio::Recording.exists?(item.id)
+  end
+
   test "sample create posts nested fields through the adapter" do
     assert_difference -> { RecordingStudioLibrary::SampleItem.count }, 1 do
       post recording_studio_library.recording_sample_items_path(@library), params: {
