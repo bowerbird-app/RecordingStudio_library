@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "open3"
 
 class RecordingStudioLibraryTest < Minitest::Test
   def test_version_matches_release
@@ -179,7 +180,6 @@ class RecordingStudioLibraryTest < Minitest::Test
     assert_includes readme, "Version **#{version}**"
     assert_includes readme, %(tag: "v#{version}")
     assert_includes changelog, "## [#{version}]"
-    refute_includes changelog, "Accessible `v0.14.0`"
   end
 
   def test_dummy_database_defaults_use_the_gem_name
@@ -208,9 +208,10 @@ class RecordingStudioLibraryTest < Minitest::Test
   def test_coverage_output_is_gitignored_and_untracked
     root = File.expand_path("..", __dir__)
     gitignore = File.read(File.join(root, ".gitignore"))
-    tracked = `git -C #{root} ls-files -- coverage test/dummy/coverage`.strip
+    tracked, status = Open3.capture2e("git", "-C", root, "ls-files", "--", "coverage", "test/dummy/coverage")
 
+    assert_equal 0, status.exitstatus
     assert_includes gitignore, "coverage/"
-    assert_equal "", tracked
+    assert_equal "", tracked.strip
   end
 end

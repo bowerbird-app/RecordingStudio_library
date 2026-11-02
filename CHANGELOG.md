@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.4] - 2026-11-02
 
 ### Changed
-- Version, README, and CHANGELOG now match the same number. Git tags `v0.1.1` through `v0.1.3` already existed while `version.rb` still said `0.1.0`.
+- `version.rb` is `0.1.4`. Tags `v0.1.1` to `v0.1.3` moved Accessible to `v0.15.0` (`v0.1.1`), Trashable to `v0.8.0` (`v0.1.2`), and Orderable to `v0.3.0` (`v0.1.3`) while `version.rb` stayed `0.1.0`.
 - Dummy PostgreSQL defaults are `recording_studio_library_development` and `recording_studio_library_test`.
 - Security and CI lint Ruby setup use `3.3` so `setup-ruby` can resolve a current patch on `ubuntu-26.04`. Matrix test jobs stay on `3.3` / `3.4`.
 - Dummy SimpleCov output under `test/dummy/coverage/` is untracked.
@@ -34,6 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Upgrade notes
 - New gem. Hosts add it, run the install and migrations generators, opt parents into `Library.to` and holders into `Placeable.to`, and register an adapter per item type.
-- Pin Recording Studio `v4.4.0`, Accessible `v0.15.0`, Orderable `v0.3.0`, Trashable `v0.8.0`, Metrics `v0.2.2`, and Flatpack `v0.1.227` from GitHub tags.
+- Pin Recording Studio `v4.4.0`, Accessible `v0.14.0`, Orderable `v0.2.8`, Trashable `v0.7.0`, Metrics `v0.2.2`, and Flatpack `v0.1.227` from GitHub tags.
 - Use `find_library` on read paths. `library_for` remains the find-or-create write path.
 - Attachable still owns its own Library/Placement until a later phase. Do not switch Presskits or Video onto this gem yet.
