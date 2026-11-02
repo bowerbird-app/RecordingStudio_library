@@ -4,7 +4,7 @@ require "test_helper"
 
 class RecordingStudioLibraryTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.1.0", ::RecordingStudioLibrary::VERSION
+    assert_equal "0.1.4", ::RecordingStudioLibrary::VERSION
   end
 
   def test_engine_exists
@@ -169,5 +169,46 @@ class RecordingStudioLibraryTest < Minitest::Test
     assert_includes source, "authorize_library!"
     assert_includes source, "ActiveRecord::Base.transaction"
     refute_match(/safe_constantize.*\n.*record!/m, source)
+  end
+
+  def test_readme_and_changelog_use_the_gem_version
+    version = ::RecordingStudioLibrary::VERSION
+    readme = File.read(File.expand_path("../README.md", __dir__))
+    changelog = File.read(File.expand_path("../CHANGELOG.md", __dir__))
+
+    assert_includes readme, "Version **#{version}**"
+    assert_includes readme, %(tag: "v#{version}")
+    assert_includes changelog, "## [#{version}]"
+    refute_includes changelog, "Accessible `v0.14.0`"
+  end
+
+  def test_dummy_database_defaults_use_the_gem_name
+    database = File.read(File.expand_path("dummy/config/database.yml", __dir__))
+    compose = File.read(File.expand_path("../.devcontainer/docker-compose.yml", __dir__))
+
+    assert_includes database, "recording_studio_library_development"
+    assert_includes database, "recording_studio_library_test"
+    refute_includes database, "app_development"
+    refute_includes database, "app_test"
+    assert_includes compose, "recording_studio_library_development"
+    refute_includes compose, "app_development"
+  end
+
+  def test_security_workflow_pins_ruby_3_3_in_setup_steps
+    source = File.read(File.expand_path("../.github/workflows/security.yml", __dir__))
+    ci = File.read(File.expand_path("../.github/workflows/ci.yml", __dir__))
+
+    assert_equal 3, source.scan("ruby-version: '3.3'").size
+    refute_includes source, "ruby-version: .ruby-version"
+    assert_includes ci, "ruby-version: .ruby-version"
+  end
+
+  def test_coverage_output_is_gitignored_and_untracked
+    root = File.expand_path("..", __dir__)
+    gitignore = File.read(File.join(root, ".gitignore"))
+    tracked = `git -C #{root} ls-files -- coverage test/dummy/coverage`.strip
+
+    assert_includes gitignore, "coverage/"
+    assert_equal "", tracked
   end
 end
