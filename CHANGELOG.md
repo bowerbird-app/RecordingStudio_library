@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Version, README, and CHANGELOG now match the same number. Git tags `v0.1.1` through `v0.1.3` already existed while `version.rb` still said `0.1.0`.
 - Dummy PostgreSQL defaults are `recording_studio_library_development` and `recording_studio_library_test`.
-- Security workflow Ruby setup uses `3.3` so `setup-ruby` can resolve a current patch on `ubuntu-26.04`.
+- Security and CI lint Ruby setup use `3.3` so `setup-ruby` can resolve a current patch on `ubuntu-26.04`. Matrix test jobs stay on `3.3` / `3.4`.
 - Dummy SimpleCov output under `test/dummy/coverage/` is untracked.
 
 ### Upgrade notes

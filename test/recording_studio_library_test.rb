@@ -200,7 +200,9 @@ class RecordingStudioLibraryTest < Minitest::Test
 
     assert_equal 3, source.scan("ruby-version: '3.3'").size
     refute_includes source, "ruby-version: .ruby-version"
-    assert_includes ci, "ruby-version: .ruby-version"
+    assert_includes ci, "ruby-version: '3.3'"
+    assert_includes ci, "ruby-version: ${{ matrix.ruby-version }}"
+    refute_includes ci, "ruby-version: .ruby-version"
   end
 
   def test_coverage_output_is_gitignored_and_untracked
