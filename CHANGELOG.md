@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.1] - 2026-11-02
+## [0.1.5] - 2026-11-02
 
 ### Changed
 - Item destroy still removes pointing placements, via Recording Studio's `extend_model(:recording)` hook instead of including into core `Recording`.
@@ -20,6 +20,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `place!` raises when Orderable cannot append the new placement.
 - Sample PATCH writes a new recordable snapshot and an `updated` event. Sample DELETE requires Trashable.
 - `authorize_with` and `unfiltered_access` are unchanged in this release.
+
+## [0.1.4] - 2026-11-02
+
+### Changed
+- `version.rb` is `0.1.4`. Tags `v0.1.1` to `v0.1.3` moved Accessible to `v0.15.0` (`v0.1.1`), Trashable to `v0.8.0` (`v0.1.2`), and Orderable to `v0.3.0` (`v0.1.3`) while `version.rb` stayed `0.1.0`.
+- Dummy PostgreSQL defaults are `recording_studio_library_development` and `recording_studio_library_test`.
+- Security and CI lint Ruby setup use `3.3` so `setup-ruby` can resolve a current patch on `ubuntu-26.04`. Matrix test jobs stay on `3.3` / `3.4`.
+- Dummy SimpleCov output under `test/dummy/coverage/` is untracked.
+
+### Upgrade notes
+- Point the gem at tag `v0.1.4` when that GitHub Release exists. Until then, pin the commit on this branch.
+- Recreate dummy databases if you still have `app_development` / `app_test` from the template defaults.
 
 ## [0.1.0] - 2026-10-10
 
