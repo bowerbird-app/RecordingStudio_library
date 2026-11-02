@@ -5,7 +5,7 @@ require "open3"
 
 class RecordingStudioLibraryTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.2.0", ::RecordingStudioLibrary::VERSION
+    assert_equal "0.2.1", ::RecordingStudioLibrary::VERSION
   end
 
   def test_engine_exists
@@ -134,12 +134,18 @@ class RecordingStudioLibraryTest < Minitest::Test
     refute_includes helper, "def library_screen_page_nav"
     assert_includes helper, "dummy_page_nav_right_chrome"
     assert_includes helper, "recording_studio_root_switch_dropdown"
+    assert_includes helper, "href: main_app.destroy_user_session_path"
+    refute_includes helper, "url: main_app.destroy_user_session_path"
   end
 
   def test_library_grid_uses_flatpack_card_media_flush_to_the_top
     grid = File.read(File.expand_path("../app/views/recording_studio_library/libraries/_grid.html.erb", __dir__))
 
     assert_includes grid, "FlatPack::Card::Component"
+    assert_includes grid, "gap: :lg"
+    assert_includes grid, 'class: "lg:grid-cols-5"'
+    refute_includes grid, "items-stretch"
+    refute_includes grid, "gap-6"
     assert_includes grid, 'card.media(aspect_ratio: "4/3", padding: :none)'
     refute_includes grid, "aspect-4/3 overflow-hidden"
   end

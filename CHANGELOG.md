@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-11-02
+
+### Changed
+- Library grid uses FlatPack Grid `gap: :lg` instead of a raw `gap-6` class. Align stays the Grid default (`items-stretch`).
+- Dummy Sign out uses Button `href:` (FlatPack ≥ 0.1.177). `url:` rendered a dead `<button url="…">`.
+
+### Upgrade notes
+- Hosts that copied `_grid.html.erb` should pass `gap: :lg` and drop `class: "items-stretch gap-6"`. Keep `lg:grid-cols-5` if you still want five columns on large screens.
+- Hosts on FlatPack ≥ 0.1.177 should pass Button `href:`, not `url:`.
+
 ## [0.2.0] - 2026-11-02
 
 ### Changed
@@ -54,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use `find_library` on read paths. `library_for` remains the find-or-create write path.
 - Attachable still owns its own Library/Placement until a later phase. Do not switch Presskits or Video onto this gem yet.
 
+[0.2.1]: https://github.com/bowerbird-app/RecordingStudio_library/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/bowerbird-app/RecordingStudio_library/compare/v0.1.4...v0.2.0
 [0.1.4]: https://github.com/bowerbird-app/RecordingStudio_library/compare/v0.1.0...v0.1.4
 [0.1.0]: https://github.com/bowerbird-app/RecordingStudio_library/releases/tag/v0.1.0

@@ -1,5 +1,5 @@
 <% navigation_params = local_assigns.fetch(:navigation_params) %>
-<%= render FlatPack::Grid::Component.new(cols: 2, class: "items-stretch gap-6 lg:grid-cols-5") do %>
+<%= render FlatPack::Grid::Component.new(cols: 2, gap: :lg, class: "lg:grid-cols-5") do %>
   <% items.each do |recording, adapter| %>
     <% href = library_item_path_for(recording, **navigation_params) %>
     <%= render FlatPack::Card::Component.new(
