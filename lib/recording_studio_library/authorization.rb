@@ -64,11 +64,9 @@ module RecordingStudioLibrary
 
       def visible?(actor:, recording:)
         return true if RecordingStudioLibrary.configuration.unfiltered_access
-        return true unless accessible_loaded?
+        return false unless accessible_loaded?
 
         RecordingStudioAccessible::Authorization.allowed?(actor: actor, recording: recording, role: :view)
-      rescue StandardError
-        false
       end
 
       def library_owner_for(recording)
@@ -81,11 +79,7 @@ module RecordingStudioLibrary
         type = recording.try(:recordable_type)
         return {} if type.blank? || !defined?(RecordingStudio)
 
-        RecordingStudio.capability_options(capability, for: type) ||
-          RecordingStudio.capability_options(capability, for_type: type) ||
-          {}
-      rescue StandardError
-        {}
+        RecordingStudio.capability_options(capability, for: type) || {}
       end
 
       private
@@ -96,7 +90,7 @@ module RecordingStudioLibrary
 
         adapter = RecordingStudioLibrary.configuration.authorize_with
         return !!adapter.call(action: action, actor: actor, recording: recording, role: role) if adapter.respond_to?(:call)
-        return true unless accessible_loaded?
+        return false unless accessible_loaded?
 
         RecordingStudioAccessible::Authorization.allowed?(actor: actor, recording: recording, role: role)
       end
@@ -111,14 +105,8 @@ module RecordingStudioLibrary
         type = recording.try(:recordable_type)
         return false if type.blank? || !defined?(RecordingStudio)
 
-        if RecordingStudio.respond_to?(:configuration) && RecordingStudio.configuration.respond_to?(:capability_enabled?)
-          RecordingStudio.configuration.capability_enabled?(name, for_type: type)
-        else
-          RecordingStudio.respond_to?(:capability_enabled?) &&
-            RecordingStudio.capability_enabled?(name, for: type)
-        end
-      rescue StandardError
-        false
+        RecordingStudio.respond_to?(:capability_enabled?) &&
+          RecordingStudio.capability_enabled?(name, for: type)
       end
 
       def accessible_loaded?

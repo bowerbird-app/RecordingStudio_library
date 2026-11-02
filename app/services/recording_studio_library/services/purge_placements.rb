@@ -36,8 +36,6 @@ module RecordingStudioLibrary
         return [] unless defined?(RecordingStudioLibrary::Placement)
 
         RecordingStudioLibrary::Placement.where(item_recording_id: item_recording.id).pluck(:id)
-      rescue StandardError
-        []
       end
     end
   end

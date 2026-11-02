@@ -45,17 +45,20 @@ module RecordingStudioLibrary
       end
 
       def record_placement(parent, item, resolved_actor)
-        parent.record(RecordingStudioLibrary::Placement, parent_recording: parent, actor: resolved_actor) do |placement|
-          placement.item_recording_id = item.id
-        end
+        event = RecordingStudio.record!(
+          action: "created",
+          recordable: RecordingStudioLibrary::Placement.new(item_recording_id: item.id),
+          root_recording: LibraryQuery.root_for(parent),
+          parent_recording: parent,
+          actor: resolved_actor
+        )
+        event.recording
       end
 
       def append_order(parent, placement, resolved_actor)
         return unless parent.respond_to?(:recording_studio_orderable_append!)
 
         parent.recording_studio_orderable_append!(placement, actor: resolved_actor)
-      rescue StandardError
-        placement
       end
     end
   end

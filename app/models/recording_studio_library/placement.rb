@@ -17,14 +17,9 @@ module RecordingStudioLibrary
     validates :item_recording_id, presence: true
 
     def title
-      adapter = begin
-        item = RecordingStudio::Recording.find_by(id: item_recording_id)
-        RecordingStudioLibrary.adapter_for(item).title if item
-      rescue StandardError
-        nil
-      end
-
-      adapter.presence || I18n.t("recording_studio.library.placements.item_fallback")
+      item = RecordingStudio::Recording.find_by(id: item_recording_id)
+      adapter_title = RecordingStudioLibrary.adapter_for(item).title if item
+      adapter_title.presence || I18n.t("recording_studio.library.placements.item_fallback")
     end
   end
 end

@@ -48,13 +48,17 @@ module RecordingStudioLibrary
       @library = @item_recording.parent_recording
       authorize_library!(:revise, @library)
       @sample_item = @item_recording.recordable
-      if @sample_item.update(sample_item_params)
-        redirect_to sample_item_path(@item_recording, library_navigation_params),
-                    notice: t("recording_studio.library.flashes.item_updated")
-      else
-        @adapter = RecordingStudioLibrary.adapter_for(@item_recording)
-        render :edit, status: :unprocessable_entity
+      draft = nil
+      @item_recording.revise(@item_recording, actor: current_library_actor) do |recordable|
+        recordable.assign_attributes(sample_item_params)
+        draft = recordable
       end
+      redirect_to sample_item_path(@item_recording, library_navigation_params),
+                  notice: t("recording_studio.library.flashes.item_updated")
+    rescue ActiveRecord::RecordInvalid
+      @sample_item = draft || @item_recording.recordable
+      @adapter = RecordingStudioLibrary.adapter_for(@item_recording)
+      render :edit, status: :unprocessable_entity
     end
 
     def destroy
@@ -62,11 +66,11 @@ module RecordingStudioLibrary
       @library = @item_recording.parent_recording
       authorize_library!(:remove, @library)
       usages = RecordingStudioLibrary.usages(@item_recording)
-      if @item_recording.respond_to?(:recording_studio_trashable_trash!)
-        @item_recording.recording_studio_trashable_trash!(actor: current_library_actor)
-      else
-        @item_recording.destroy!
+      unless @item_recording.respond_to?(:recording_studio_trashable_trash!)
+        raise RecordingStudioLibrary::DependencyUnavailableError, "Trashable must be loaded"
       end
+
+      @item_recording.recording_studio_trashable_trash!(actor: current_library_actor)
       redirect_to library_path(@library, library_navigation_params),
                   notice: usages.any? ? t("recording_studio.library.flashes.trashed_in_use") : t("recording_studio.library.flashes.trashed")
     end

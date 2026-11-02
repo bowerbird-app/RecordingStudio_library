@@ -89,8 +89,6 @@ module RecordingStudioLibrary
 
         found = RecordingStudio::Recording.find_by(id: id)
         found if Placements.library_recording?(found)
-      rescue StandardError
-        nil
       end
 
       def allowed_item_types_for(recording)

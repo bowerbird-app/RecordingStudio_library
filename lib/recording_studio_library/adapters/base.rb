@@ -87,8 +87,6 @@ module RecordingStudioLibrary
         return unless defined?(RecordingStudio) && RecordingStudio.respond_to?(:recordable_declaration_for)
 
         RecordingStudio.recordable_declaration_for(type_name)&.label
-      rescue StandardError
-        nil
       end
     end
   end

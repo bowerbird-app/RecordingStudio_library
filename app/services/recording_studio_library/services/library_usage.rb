@@ -32,8 +32,6 @@ module RecordingStudioLibrary
         relation = RecordingStudio::Recording.where(parent_recording_id: library_recording.id)
         relation = relation.includes(:recordable) if relation.respond_to?(:includes)
         relation.to_a.reject { |recording| Placements.placement_recording?(recording) }
-      rescue StandardError
-        []
       end
     end
   end
