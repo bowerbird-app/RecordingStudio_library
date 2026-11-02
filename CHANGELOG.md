@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.5] - 2026-11-02
+## [0.2.0] - 2026-11-02
 
 ### Changed
 - Item destroy still removes pointing placements, via Recording Studio's `extend_model(:recording)` hook instead of including into core `Recording`.
@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - YAML and `config.x` load no longer swallow unexpected errors. A missing YAML file is still skipped.
 
 ### Upgrade notes
-- Call `apply_model_extensions` / `apply_controller_extensions` on the classes you register with `hooks.extend_model` / `extend_controller`.
+- This is a minor bump: hosts must call `apply_model_extensions` / `apply_controller_extensions` on the classes they register with `hooks.extend_model` / `extend_controller`. Descendants no longer get those procs for free.
 - `place!` raises when Orderable cannot append the new placement.
 - Sample PATCH writes a new recordable snapshot and an `updated` event. Sample DELETE requires Trashable.
 - `authorize_with` and `unfiltered_access` are unchanged in this release.
@@ -53,3 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pin Recording Studio `v4.4.0`, Accessible `v0.14.0`, Orderable `v0.2.8`, Trashable `v0.7.0`, Metrics `v0.2.2`, and Flatpack `v0.1.227` from GitHub tags.
 - Use `find_library` on read paths. `library_for` remains the find-or-create write path.
 - Attachable still owns its own Library/Placement until a later phase. Do not switch Presskits or Video onto this gem yet.
+
+[0.2.0]: https://github.com/bowerbird-app/RecordingStudio_library/compare/v0.1.4...v0.2.0
+[0.1.4]: https://github.com/bowerbird-app/RecordingStudio_library/compare/v0.1.0...v0.1.4
+[0.1.0]: https://github.com/bowerbird-app/RecordingStudio_library/releases/tag/v0.1.0
