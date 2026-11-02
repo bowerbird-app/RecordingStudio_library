@@ -40,6 +40,8 @@ include RecordingStudio::Capabilities::Placeable.to(
 
 `Library.to` on a parent means that parent can hold libraries of those item types/keys. Those lists are enforced whenever an item is recorded into a library (`place_new!`, sample create, `RecordLibraryItem`). Empty lists mean unrestricted.
 
+The engine registers `Library`, `Placement`, and `SampleItem` only after those classes have declared `recording_studio_recordable`. It does not add a type that has not declared.
+
 `Placeable.to` on a holder means that holder can hold placements of those types from those libraries. Reorder and add both use the `:upload` role, matching the placements editor.
 
 ## Adapter registry
