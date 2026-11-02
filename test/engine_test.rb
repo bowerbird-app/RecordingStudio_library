@@ -129,11 +129,19 @@ class EngineTest < Minitest::Test
   end
 
   def test_purge_hook_registers_on_core_recording_extensions
-    RecordingStudioLibrary::Engine.register_recording_studio_integration
+    RecordingStudioLibrary::Engine.install_purge_hook
 
     assert RecordingStudio.configuration.hooks.model_extensions_for(:recording).any?
     source = File.read(File.expand_path("../lib/recording_studio_library/engine.rb", __dir__))
     refute_includes source, "Recording.include"
+  end
+
+  def test_register_recording_studio_integration_does_not_register_undeclared_types
+    RecordingStudioLibrary::Engine.register_recording_studio_integration
+
+    refute RecordingStudio.recordable_declaration_defined?("RecordingStudioLibrary::SampleItem")
+    refute_includes Array(RecordingStudio.configuration.recordable_types).map(&:to_s),
+                    "RecordingStudioLibrary::SampleItem"
   end
 
   def test_apply_model_extensions_adds_registered_methods_once

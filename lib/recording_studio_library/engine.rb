@@ -49,6 +49,8 @@ module RecordingStudioLibrary
       def register_recordable_type_if_needed(type_name)
         return if Array(RecordingStudio.configuration.recordable_types).map(&:to_s).include?(type_name)
         return if defined?(RecordingStudio::Recording) && !RecordingStudio::Recording.respond_to?(:delegated_type)
+        return unless RecordingStudio.respond_to?(:recordable_declaration_defined?) &&
+                      RecordingStudio.recordable_declaration_defined?(type_name)
 
         RecordingStudio.register_recordable_type(type_name)
       end
