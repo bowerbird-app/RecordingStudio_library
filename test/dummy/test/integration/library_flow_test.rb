@@ -106,6 +106,9 @@ class LibraryFlowTest < ActionDispatch::IntegrationTest
     get recording_studio_library.library_path(@library, view: :grid)
     assert_response :success
     assert_select "p", text: /Grid sample/
+    assert_includes @response.body, "gap-6"
+    assert_includes @response.body, "items-stretch"
+    assert_includes @response.body, "lg:grid-cols-5"
 
     get recording_studio_library.library_path(@library, view: :list)
     assert_response :success
@@ -151,6 +154,8 @@ class LibraryFlowTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes @response.body, "Sign out"
+    assert_select "a[href='/users/sign_out']", text: /Sign out/
+    assert_select "button[url='/users/sign_out']", count: 0
   end
 
   test "sample update revises through Recording Studio" do

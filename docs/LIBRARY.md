@@ -84,7 +84,7 @@ Model and controller hook procs apply only when the host calls `RecordingStudioL
 
 All screens are Flatpack ViewComponents.
 
-- Library page: list and grid, mountable, `library_path_for(parent_or_library)`.
+- Library page: list and grid, mountable, `library_path_for(parent_or_library)`. The grid is FlatPack Grid (`cols: 2`, `gap: :lg`, `lg:grid-cols-5`).
 - Multi-select picker with search and type filter. Lists **library items only**. Works standalone and as a Flatpack navigable modal (`flat_pack_modal_screen`, `data-fp-nav`). Hosts must pin `@hotwired/turbo-rails` so the modal's turbo-frame can load. Tiles are Flatpack Cards wrapping a checkbox.
 - Placements editor: Orderable list plus remove. Add opens the picker in a navigable modal. Reorder uses the same `:upload` permission as add.
 
