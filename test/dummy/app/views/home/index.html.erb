@@ -1,12 +1,10 @@
-<% dummy_page_nav(title: "Library Demo", back_url: root_path) %>
+<% dummy_page_nav(
+  title: "Library Demo",
+  subtitle: "A workspace library of samples, plus a page that places them in order.",
+  back_url: root_path
+) %>
 
 <div class="flex w-full flex-col gap-6">
-  <%= render FlatPack::PageTitle::Component.new(
-    title: "Library Demo",
-    subtitle: "A workspace library of samples, plus a page that places them in order.",
-    variant: :h1
-  ) %>
-
   <div class="grid gap-6 lg:grid-cols-2">
     <%= render FlatPack::Card::Component.new do |card| %>
       <% card.header do %>

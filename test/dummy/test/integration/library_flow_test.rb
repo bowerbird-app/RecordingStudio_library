@@ -215,6 +215,7 @@ class LibraryFlowTest < ActionDispatch::IntegrationTest
   test "home page links to library picker and placements" do
     get root_path
     assert_response :success
+    assert_select "h1", text: "Library Demo", count: 1
     assert_select "h1, h2, p, span, div", text: /Library Demo/
     assert_includes @response.body, "@hotwired/turbo-rails"
   end

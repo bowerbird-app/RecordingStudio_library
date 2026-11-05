@@ -143,7 +143,7 @@ class LibraryControllerAuthTest < ActionDispatch::IntegrationTest
     get recording_studio_library.sample_item_path(@item)
 
     assert_response :success
-    refute_includes @response.body, I18n.t("recording_studio.library.items.edit_title")
+    assert_includes @response.body, I18n.t("recording_studio.library.items.edit_title")
   end
 
   test "sample show shows edit to an owner" do

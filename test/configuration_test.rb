@@ -42,6 +42,26 @@ class ConfigurationTest < Minitest::Test
     refute_respond_to configuration, :include_trashed_images
   end
 
+  def test_layout_treats_legacy_default_as_core_default_layout
+    @configuration.layout = :default
+
+    assert_equal RecordingStudio::DEFAULT_LAYOUT, @configuration.layout
+
+    @configuration.layout = "default"
+
+    assert_equal RecordingStudio::DEFAULT_LAYOUT, @configuration.layout
+  end
+
+  def test_layout_treats_nil_and_blank_as_core_default_layout
+    @configuration.layout = nil
+
+    assert_equal RecordingStudio::DEFAULT_LAYOUT, @configuration.layout
+
+    @configuration.layout = "  "
+
+    assert_equal RecordingStudio::DEFAULT_LAYOUT, @configuration.layout
+  end
+
   def test_layout_accepts_a_name_and_rejects_a_positional_callable
     @configuration.layout = "application"
 

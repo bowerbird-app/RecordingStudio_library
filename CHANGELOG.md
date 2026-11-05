@@ -9,18 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Require `recording_studio` `>= 6.3.0`. Root and dummy Gemfiles pin Recording Studio tag `v6.3.0`, Accessible `v0.24.1`, Trashable `v0.12.2`, Metrics `v0.7.2`, Orderable `v0.4.8`, and FlatPack `v0.1.341`. Dummy also pins Root Switchable `v0.11.5` and Cache `v0.6.2`.
-- Engine screens call `recording_studio_layout`. `configuration.layout` defaults to `nil` and is validated by `RecordingStudio::Layout.accept`.
+- Engine screens call `recording_studio_layout`. `configuration.layout` defaults to `nil` and is validated by `RecordingStudio::Layout.accept`. Legacy `:default` / `"default"` (and nil/blank) map to core's `DEFAULT_LAYOUT` before `Layout.accept`.
 - Library page nav fills FlatPack `flat_pack_page_nav` (`with_back` / `with_close`). The old `FlatPack::PageNav` constructor fallback is gone.
-- Library and picker cards drop FlatPack Card `style:`. Picker tiles use Grid `gap: :md`. Add and sample actions use `ButtonGroup` `collapse: :menu`. The library list keeps preview and name (type stays under the title) so the table fits a phone.
-- Sample show hides Edit unless `library_allowed?(:revise, ...)`.
+- Library and picker cards drop FlatPack Card `style:`. Picker tiles use Grid `gap: :md`. Placements add actions use `ButtonGroup` `collapse: :menu`.
 - Dropped template leftovers: `UPDATE_SUMMARY.md`, `MIGRATION_NOTES.md`, `docs/gem_template/`, and the unauthenticated engine `HomeController#index` ping plus its root route.
 - Root and dummy lockfiles use Rails `8.1.4.1` and the November 2026 security floor (Rack, Loofah, Nokogiri, rails-html-sanitizer, crass, dummy net-ssh).
 
 ### Upgrade notes
 - Pin Recording Studio `>= 6.3.0` (tag `v6.3.0`) and FlatPack `v0.1.341`. Companion tags: Accessible `v0.24.1`, Trashable `v0.12.2`, Metrics `v0.7.2`, Orderable `v0.4.8`. Dummy hosts that mount Root Switchable need `v0.11.5` and Cache `v0.6.2`.
-- Stop setting `config.layout = :default`. Leave it `nil` to follow core's default layout, or pass a layout name, `false`, or a callable that accepts `controller:`.
+- Leave `config.layout` `nil` to follow core's default layout, or pass a layout name, `false`, or a callable that accepts `controller:`. Existing `config.layout = :default` and YAML `layout: default` still resolve to core's `DEFAULT_LAYOUT`.
 - Call `recording_studio_layout { RecordingStudioLibrary.configuration.layout }` on a replacement engine controller. Do not hard-code `layout "recording_studio/default_layout"`.
-- Hosts that copied library or picker cards should drop Card `style:`. Hosts that copied the picker grid should pass `gap: :md` instead of `class: "items-stretch gap-4 …"`. Hosts that copied placements add buttons or sample show actions should wrap them in `ButtonGroup` `collapse: :menu`. Hosts that copied the library list should drop the Type and Actions columns; the name already links and shows the type.
+- Hosts that copied library or picker cards should drop Card `style:`. Hosts that copied the picker grid should pass `gap: :md` instead of `class: "items-stretch gap-4 …"`. Hosts that copied placements add buttons should wrap them in `ButtonGroup` `collapse: :menu`.
 - Engine `/` is no longer a 200 ping. Mount a host route if you used that URL as a health check.
 
 ## [0.2.1] - 2026-11-02

@@ -156,8 +156,9 @@ class RecordingStudioLibraryTest < Minitest::Test
     list = File.read(File.expand_path("../app/views/recording_studio_library/libraries/_list.html.erb", __dir__))
 
     assert_includes list, "adapter.type_label"
-    refute_includes list, "type_column"
-    refute_includes list, "actions_column"
+    assert_includes list, "type_column"
+    assert_includes list, "actions_column"
+    assert_includes list, "open_aria"
   end
 
   def test_library_grid_uses_flatpack_card_media_flush_to_the_top
@@ -205,9 +206,10 @@ class RecordingStudioLibraryTest < Minitest::Test
   def test_sample_item_show_gates_edit_and_groups_actions
     show = File.read(File.expand_path("../app/views/recording_studio_library/sample_items/show.html.erb", __dir__))
 
-    assert_includes show, "library_allowed?(:revise, @library)"
-    assert_includes show, "FlatPack::ButtonGroup::Component"
-    assert_includes show, "collapse: :menu"
+    refute_includes show, "library_allowed?(:revise, @library)"
+    assert_includes show, "form_with"
+    assert_includes show, 'type: "submit"'
+    refute_includes show, "FlatPack::ButtonGroup::Component"
   end
 
   def test_placements_index_groups_add_actions

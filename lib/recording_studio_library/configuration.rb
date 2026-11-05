@@ -28,7 +28,7 @@ module RecordingStudioLibrary
     end
 
     def layout=(value)
-      @layout = RecordingStudio::Layout.accept(value)
+      @layout = RecordingStudio::Layout.accept(legacy_layout(value))
     end
 
     def merge!(hash)
@@ -65,6 +65,20 @@ module RecordingStudioLibrary
 
     def merge_value(key, value)
       key.to_sym == :auth_roles ? normalize_auth_roles(value) : value
+    end
+
+    def legacy_layout(value)
+      return RecordingStudio::DEFAULT_LAYOUT if default_layout_value?(value)
+
+      value
+    end
+
+    def default_layout_value?(value)
+      return true if value.nil? || value == :default
+      return false unless value.is_a?(String)
+
+      normalized = value.strip
+      normalized.empty? || normalized.casecmp("default").zero?
     end
 
     def default_auth_roles

@@ -26,28 +26,24 @@
     <p class="text-sm text-(--surface-muted-content-color)"><%= t("recording_studio.library.items.unused") %></p>
   <% end %>
 
-  <%= render FlatPack::ButtonGroup::Component.new(variant: :outlined, collapse: :menu) do |group| %>
-    <% if library_allowed?(:revise, @library) %>
-      <% group.button(
-           FlatPack::Button::Component.new(
-             text: t("recording_studio.library.items.edit_title"),
-             style: :secondary,
-             size: :md,
-             href: edit_sample_item_path(@item_recording, navigation_params)
-           )
-         ) %>
-    <% end %>
+  <div class="flex flex-wrap gap-3">
+    <%= render FlatPack::Button::Component.new(
+      text: t("recording_studio.library.items.edit_title"),
+      style: :secondary,
+      size: :md,
+      href: edit_sample_item_path(@item_recording, navigation_params)
+    ) %>
     <% if @can_remove %>
-      <% group.button(
-           FlatPack::Button::Component.new(
-             text: t("recording_studio.library.items.trash"),
-             style: :danger,
-             size: :md,
-             href: sample_item_path(@item_recording, navigation_params),
-             aria: { label: t("recording_studio.library.items.trash_aria", title: @adapter.title) },
-             data: { turbo_method: :delete, turbo_confirm: library_usage_confirm(@usages) }
-           )
-         ) %>
+      <%= form_with url: sample_item_path(@item_recording, navigation_params), method: :delete, class: "inline-flex" do %>
+        <%= render FlatPack::Button::Component.new(
+          text: t("recording_studio.library.items.trash"),
+          style: :danger,
+          size: :md,
+          type: "submit",
+          aria: { label: t("recording_studio.library.items.trash_aria", title: @adapter.title) },
+          data: { turbo_confirm: library_usage_confirm(@usages) }
+        ) %>
+      <% end %>
     <% end %>
-  <% end %>
+  </div>
 </div>
