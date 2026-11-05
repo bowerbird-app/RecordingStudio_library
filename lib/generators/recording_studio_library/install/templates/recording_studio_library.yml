@@ -1,5 +1,3 @@
-development:
-  layout: default
+development: {}
 
-production:
-  layout: default
+production: {}

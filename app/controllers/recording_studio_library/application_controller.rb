@@ -5,7 +5,11 @@ require "uri"
 module RecordingStudioLibrary
   class ApplicationController < (defined?(::ApplicationController) ? ::ApplicationController : ActionController::Base)
     protect_from_forgery with: :exception
-    layout :recording_studio_library_layout
+    recording_studio_layout do
+      next false if modal_request?
+
+      RecordingStudioLibrary.configuration.layout
+    end
 
     rescue_from RecordingStudioLibrary::Authorization::NotAuthorizedError, with: :handle_not_authorized
     rescue_from ActiveRecord::RecordNotFound, with: :handle_record_not_found
@@ -71,15 +75,6 @@ module RecordingStudioLibrary
 
     def modal_id
       params[:modal_id].presence || "library-picker"
-    end
-
-    def recording_studio_library_layout
-      return false if modal_request?
-
-      configured = RecordingStudioLibrary.configuration.layout
-      return "recording_studio/default_layout" if configured.blank? || configured.to_sym == :default
-
-      configured.to_s
     end
 
     def validated_local_redirect_target(target)

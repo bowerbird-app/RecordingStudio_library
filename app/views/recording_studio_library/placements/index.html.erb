@@ -13,25 +13,29 @@
   ) %>
 
   <% if @can_add %>
-    <div class="flex flex-wrap items-center gap-3">
-      <%= render FlatPack::Button::Component.new(
-        text: t("recording_studio.library.placements.add"),
-        style: :primary,
-        size: :md,
-        icon: "plus",
-        type: "button",
-        data: {
-          action: "click->flat-pack--modal#open",
-          modal_id: @picker_modal_id
-        }
-      ) %>
-      <%= render FlatPack::Button::Component.new(
-        text: t("recording_studio.library.picker.title"),
-        style: :secondary,
-        size: :md,
-        href: library_picker_path_for(@recording, **navigation_params)
-      ) %>
-    </div>
+    <%= render FlatPack::ButtonGroup::Component.new(variant: :outlined, collapse: :menu) do |group| %>
+      <% group.button(
+           FlatPack::Button::Component.new(
+             text: t("recording_studio.library.placements.add"),
+             style: :primary,
+             size: :md,
+             icon: "plus",
+             type: "button",
+             data: {
+               action: "click->flat-pack--modal#open",
+               modal_id: @picker_modal_id
+             }
+           )
+         ) %>
+      <% group.button(
+           FlatPack::Button::Component.new(
+             text: t("recording_studio.library.picker.title"),
+             style: :secondary,
+             size: :md,
+             href: library_picker_path_for(@recording, **navigation_params)
+           )
+         ) %>
+    <% end %>
 
     <%= render FlatPack::Modal::Component.new(
       id: @picker_modal_id,

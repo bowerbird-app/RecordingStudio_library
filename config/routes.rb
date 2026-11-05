@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 RecordingStudioLibrary::Engine.routes.draw do
-  root "home#index"
-
   resources :recordings, only: [] do
     resource :library, only: :show, controller: "libraries"
     get "picker", to: "pickers#index", as: :picker

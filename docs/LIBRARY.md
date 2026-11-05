@@ -84,11 +84,12 @@ Model and controller hook procs apply only when the host calls `RecordingStudioL
 
 All screens are Flatpack ViewComponents.
 
-- Library page: list and grid, mountable, `library_path_for(parent_or_library)`. The grid is FlatPack Grid (`cols: 2`, `gap: :lg`, `lg:grid-cols-5`).
-- Multi-select picker with search and type filter. Lists **library items only**. Works standalone and as a Flatpack navigable modal (`flat_pack_modal_screen`, `data-fp-nav`). Hosts must pin `@hotwired/turbo-rails` so the modal's turbo-frame can load. Tiles are Flatpack Cards wrapping a checkbox.
-- Placements editor: Orderable list plus remove. Add opens the picker in a navigable modal. Reorder uses the same `:upload` permission as add.
+- Library page: list and grid, mountable, `library_path_for(parent_or_library)`. The grid is FlatPack Grid (`cols: 2`, `gap: :lg`, `lg:grid-cols-5`). Cards do not pass `style:`. The list is preview plus name (type under the title).
+- Multi-select picker with search and type filter. Lists **library items only**. Works standalone and as a Flatpack navigable modal (`flat_pack_modal_screen`, `data-fp-nav`). Hosts must pin `@hotwired/turbo-rails` so the modal's turbo-frame can load. Tiles are Flatpack Cards wrapping a checkbox on Grid `gap: :md`.
+- Placements editor: Orderable list plus remove. Add and the standalone picker sit in a `ButtonGroup` (`collapse: :menu`). Add opens the picker in a navigable modal. Reorder uses the same `:upload` permission as add.
+- Sample show: Edit is gated with `library_allowed?(:revise, library)`. Edit and trash sit in a `ButtonGroup` (`collapse: :menu`).
 
-When the host uses Recording Studio's default layout, engine screens fill that layout's PageNav slots instead of rendering a second PageNav.
+Engine screens call `recording_studio_layout { RecordingStudioLibrary.configuration.layout }`. A `nil` setting follows the host core layout, then `RecordingStudio::DEFAULT_LAYOUT`. They fill FlatPack `flat_pack_page_nav` (back and close) instead of rendering a second PageNav.
 
 Staff admin UI belongs in Recording Studio Admin, not here.
 
@@ -98,7 +99,7 @@ Staff admin UI belongs in Recording Studio Admin, not here.
 
 ## Install
 
-1. Add the gem and pin Recording Studio, Orderable, Trashable, Accessible, and Flatpack from GitHub tags (see the README).
+1. Add the gem and pin Recording Studio `>= 6.3.0`, Orderable, Trashable, Accessible, and Flatpack from GitHub tags (see the README). Leave `config.layout` nil unless the host needs a different shell.
 2. `bin/rails generate recording_studio_library:install`
 3. `bin/rails generate recording_studio_library:migrations`
 4. `bin/rails db:migrate`

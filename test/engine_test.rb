@@ -98,7 +98,7 @@ class EngineTest < Minitest::Test
 
     find_initializer("recording_studio_library.load_config").block.call(app)
 
-    assert_equal :default, RecordingStudioLibrary.configuration.layout
+    assert_nil RecordingStudioLibrary.configuration.layout
   end
 
   def test_load_config_skips_yaml_that_cannot_merge

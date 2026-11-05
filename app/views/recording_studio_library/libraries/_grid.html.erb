@@ -3,7 +3,6 @@
   <% items.each do |recording, adapter| %>
     <% href = library_item_path_for(recording, **navigation_params) %>
     <%= render FlatPack::Card::Component.new(
-      style: :default,
       clickable: href.present?,
       href: href,
       class: "rounded-xl focus:outline-none focus:ring-2 focus:ring-(--brand-color)"
