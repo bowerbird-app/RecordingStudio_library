@@ -60,36 +60,32 @@ module RecordingStudioLibrary
       t("recording_studio.library.confirm.trash_in_use", places: labels.to_sentence)
     end
 
-    def library_screen_page_nav(back_url:, title: nil, back_label: nil, anchor_url: nil, anchor_label: nil)
-      back_label ||= t("recording_studio.library.navigation.back")
-      anchor_label ||= t("recording_studio.library.navigation.return_to_source")
-      return fill_host_library_page_nav(title:, back_url:, back_label:, anchor_url:, anchor_label:) if library_uses_host_page_nav?
-
-      render FlatPack::PageNav::Component.new(
-        back_icon: "arrow-left",
-        back_label: back_label,
-        anchor_url: anchor_url.presence || back_url,
-        anchor_label: anchor_label
+    def library_allowed?(action, recording)
+      RecordingStudioLibrary::Authorization.library_allowed?(
+        action: action,
+        actor: current_library_actor,
+        recording: recording
       )
     end
 
-    def library_uses_host_page_nav?
-      configured = RecordingStudioLibrary.configuration.layout
-      (configured.blank? || configured.to_sym == :default) && respond_to?(:recording_studio_page_nav)
+    def library_screen_page_nav(back_url:, title: nil, back_label: nil, anchor_url: nil, anchor_label: nil)
+      content_for(:title, title) if title.present?
+      back_label ||= t("recording_studio.library.navigation.back")
+      anchor_label ||= t("recording_studio.library.navigation.return_to_source")
+      kwargs = {
+        round: true,
+        style: :default,
+        back_href: back_url,
+        back_tooltip: back_label
+      }
+      if anchor_url.present?
+        kwargs[:anchor_href] = anchor_url
+        kwargs[:anchor_tooltip] = anchor_label
+      end
+      flat_pack_page_nav(**kwargs)
     end
 
     private
-
-    def fill_host_library_page_nav(title:, back_url:, back_label:, anchor_url:, anchor_label:)
-      recording_studio_page_nav(
-        title: title,
-        page_nav_back_url: back_url,
-        page_nav_back_label: back_label,
-        page_nav_anchor_url: anchor_url,
-        page_nav_anchor_label: anchor_label
-      )
-      nil
-    end
 
     def library_engine_routes
       if respond_to?(:recording_studio_library, true)

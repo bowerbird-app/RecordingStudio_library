@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 RecordingStudioLibrary.configure do |config|
-  # Layout used by engine screens. `:default` uses Recording Studio's shared layout.
-  # config.layout = :default
+  # nil uses RecordingStudio.configuration.layout, then recording_studio/default_layout.
+  # Pass a layout name, false, or a callable that accepts controller:.
+  # config.layout = nil
 
   # Override Accessible role mapping if the host uses different names.
   # config.auth_roles = { view: :viewer, upload: :editor, revise: :editor, remove: :admin, restore: :admin }

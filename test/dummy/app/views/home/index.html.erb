@@ -8,7 +8,7 @@
   ) %>
 
   <div class="grid gap-6 lg:grid-cols-2">
-    <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+    <%= render FlatPack::Card::Component.new do |card| %>
       <% card.header do %>
         <%= render FlatPack::PageTitle::Component.new(
           title: "Library",
@@ -37,7 +37,7 @@
       <% end %>
     <% end %>
 
-    <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+    <%= render FlatPack::Card::Component.new(border: :default) do |card| %>
       <% card.header do %>
         <%= render FlatPack::PageTitle::Component.new(
           title: "Homepage gallery",
@@ -66,7 +66,7 @@
       <% end %>
     <% end %>
 
-    <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+    <%= render FlatPack::Card::Component.new(border: :default) do |card| %>
       <% card.header do %>
         <%= render FlatPack::PageTitle::Component.new(
           title: "Placed on the homepage",
@@ -98,7 +98,7 @@
       <% end %>
     <% end %>
 
-    <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+    <%= render FlatPack::Card::Component.new do |card| %>
       <% card.header do %>
         <%= render FlatPack::PageTitle::Component.new(
           title: "How it works",

@@ -28,11 +28,11 @@
         <% end %>
 
         <div class="order-3 col-span-full <%= "lg:row-start-2" if show_add_selected %>">
-          <%= render FlatPack::Grid::Component.new(cols: 2, class: "items-stretch gap-4 lg:grid-cols-4") do %>
+          <%= render FlatPack::Grid::Component.new(cols: 2, gap: :md, class: "lg:grid-cols-4") do %>
             <% @items.each do |recording, adapter| %>
               <% placed = @placed_ids.include?(recording.id.to_s) %>
               <label class="flex cursor-pointer flex-col">
-                <%= render FlatPack::Card::Component.new(style: :interactive, padding: :sm) do |card| %>
+                <%= render FlatPack::Card::Component.new(padding: :sm, hover: :subtle) do |card| %>
                   <% card.media(aspect_ratio: "4/3", padding: :none) do %>
                     <%= adapter.thumbnail(self) %>
                   <% end %>

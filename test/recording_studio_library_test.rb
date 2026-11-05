@@ -5,17 +5,18 @@ require "open3"
 
 class RecordingStudioLibraryTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.2.1", ::RecordingStudioLibrary::VERSION
+    assert_equal "0.3.0", ::RecordingStudioLibrary::VERSION
   end
 
   def test_engine_exists
     assert_kind_of Class, ::RecordingStudioLibrary::Engine
   end
 
-  def test_gemspec_pins_recording_studio_4_2
+  def test_gemspec_pins_recording_studio_6_3
     gemspec = File.read(File.expand_path("../recording_studio_library.gemspec", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.3.0"'
+    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.341"'
     assert_includes gemspec, "https://github.com/bowerbird-app/RecordingStudio_library"
   end
 
@@ -31,15 +32,20 @@ class RecordingStudioLibraryTest < Minitest::Test
     dummy = File.read(File.expand_path("dummy/Gemfile", __dir__))
 
     [
-      'github: "bowerbird-app/RecordingStudio", tag: "v4.4.0"',
-      'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.15.0"',
-      'github: "bowerbird-app/RecordingStudio_orderable", tag: "v0.3.0"',
-      'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.8.0"',
-      'github: "bowerbird-app/flatpack", tag: "v0.1.227"'
+      'github: "bowerbird-app/RecordingStudio", tag: "v6.3.0"',
+      'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.24.1"',
+      'github: "bowerbird-app/RecordingStudio_orderable", tag: "v0.4.8"',
+      'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.12.2"',
+      'github: "bowerbird-app/flatpack", tag: "v0.1.341"'
     ].each do |pin|
       assert_includes root, pin
       assert_includes dummy, pin
     end
+
+    assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.11.5"'
+    assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.6.2"'
+    assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.2"'
+    assert_includes root, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.2"'
   end
 
   def test_does_not_ship_copied_core_hooks_or_base_service
@@ -66,8 +72,8 @@ class RecordingStudioLibraryTest < Minitest::Test
     application_controller_path = File.expand_path("dummy/app/controllers/application_controller.rb", __dir__)
     controller_source = File.read(application_controller_path)
 
-    assert_includes controller_source, "include RecordingStudio::UsesDefaultLayout"
-    assert_includes controller_source, '"recording_studio/default_layout"'
+    assert_includes controller_source, "recording_studio_layout"
+    refute_includes controller_source, "UsesDefaultLayout"
     refute File.exist?(File.expand_path("dummy/app/views/layouts/flat_pack_sidebar.html.erb", __dir__))
   end
 
@@ -81,10 +87,14 @@ class RecordingStudioLibraryTest < Minitest::Test
     assert_includes view_source, "dummy_page_nav"
   end
 
-  def test_engine_does_not_ship_a_home_view
+  def test_engine_does_not_ship_a_home_ping
     view_path = File.expand_path("../app/views/recording_studio_library/home/index.html.erb", __dir__)
+    controller_path = File.expand_path("../app/controllers/recording_studio_library/home_controller.rb", __dir__)
+    routes = File.read(File.expand_path("../config/routes.rb", __dir__))
 
     refute File.exist?(view_path)
+    refute File.exist?(controller_path)
+    refute_includes routes, "home#index"
   end
 
   def test_engine_registers_the_dummy_adapter
@@ -113,6 +123,9 @@ class RecordingStudioLibraryTest < Minitest::Test
     assert_includes body, 'card.media(aspect_ratio: "4/3", padding: :none)'
     assert_includes body, "flat-pack--unsaved-changes"
     assert_includes body, "style: :default"
+    assert_includes body, "gap: :md"
+    refute_includes body, "style: :interactive"
+    refute_includes body, "items-stretch gap-4"
     assert_includes body, "flat-pack--unsaved-changes-target"
     refute_includes body, "border-(--surface-border-color)"
     refute_includes body, "aspect-4/3 overflow-hidden"
@@ -133,9 +146,18 @@ class RecordingStudioLibraryTest < Minitest::Test
 
     refute_includes helper, "def library_screen_page_nav"
     assert_includes helper, "dummy_page_nav_right_chrome"
+    assert_includes helper, "flat_pack_page_nav"
     assert_includes helper, "recording_studio_root_switch_dropdown"
     assert_includes helper, "href: main_app.destroy_user_session_path"
     refute_includes helper, "url: main_app.destroy_user_session_path"
+  end
+
+  def test_library_list_keeps_type_on_the_name_and_drops_the_type_column
+    list = File.read(File.expand_path("../app/views/recording_studio_library/libraries/_list.html.erb", __dir__))
+
+    assert_includes list, "adapter.type_label"
+    refute_includes list, "type_column"
+    refute_includes list, "actions_column"
   end
 
   def test_library_grid_uses_flatpack_card_media_flush_to_the_top
@@ -144,6 +166,7 @@ class RecordingStudioLibraryTest < Minitest::Test
     assert_includes grid, "FlatPack::Card::Component"
     assert_includes grid, "gap: :lg"
     assert_includes grid, 'class: "lg:grid-cols-5"'
+    refute_includes grid, "style:"
     refute_includes grid, "items-stretch"
     refute_includes grid, "gap-6"
     assert_includes grid, 'card.media(aspect_ratio: "4/3", padding: :none)'
@@ -158,7 +181,40 @@ class RecordingStudioLibraryTest < Minitest::Test
 
     helper = File.read(File.expand_path("../app/helpers/recording_studio_library/application_helper.rb", __dir__))
     assert_includes helper, "def library_screen_page_nav"
-    assert_includes helper, "recording_studio_page_nav"
+    assert_includes helper, "flat_pack_page_nav"
+    refute_includes helper, "recording_studio_page_nav("
+    refute_includes helper, "FlatPack::PageNav::Component"
+  end
+
+  def test_engine_application_controller_uses_recording_studio_layout
+    source = File.read(File.expand_path("../app/controllers/recording_studio_library/application_controller.rb", __dir__))
+
+    assert_includes source, "recording_studio_layout"
+    refute_match(%r{layout\s+(?:\(\s*)?["']recording_studio/}, source)
+    refute_includes source, "recording_studio_library_layout"
+  end
+
+  def test_does_not_ship_template_leftovers
+    root = File.expand_path("..", __dir__)
+
+    refute File.exist?(File.join(root, "UPDATE_SUMMARY.md"))
+    refute File.exist?(File.join(root, "MIGRATION_NOTES.md"))
+    refute File.directory?(File.join(root, "docs/gem_template"))
+  end
+
+  def test_sample_item_show_gates_edit_and_groups_actions
+    show = File.read(File.expand_path("../app/views/recording_studio_library/sample_items/show.html.erb", __dir__))
+
+    assert_includes show, "library_allowed?(:revise, @library)"
+    assert_includes show, "FlatPack::ButtonGroup::Component"
+    assert_includes show, "collapse: :menu"
+  end
+
+  def test_placements_index_groups_add_actions
+    source = File.read(File.expand_path("../app/views/recording_studio_library/placements/index.html.erb", __dir__))
+
+    assert_includes source, "FlatPack::ButtonGroup::Component"
+    assert_includes source, "collapse: :menu"
   end
 
   def test_find_library_is_find_only

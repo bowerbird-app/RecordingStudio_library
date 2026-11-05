@@ -136,6 +136,26 @@ class LibraryControllerAuthTest < ActionDispatch::IntegrationTest
     assert_equal I18n.t("recording_studio.library.errors.not_found"), flash[:alert]
   end
 
+  test "sample show hides edit from a viewer" do
+    sign_in @viewer
+    Current.actor = @viewer
+
+    get recording_studio_library.sample_item_path(@item)
+
+    assert_response :success
+    refute_includes @response.body, I18n.t("recording_studio.library.items.edit_title")
+  end
+
+  test "sample show shows edit to an owner" do
+    sign_in @owner
+    Current.actor = @owner
+
+    get recording_studio_library.sample_item_path(@item)
+
+    assert_response :success
+    assert_includes @response.body, I18n.t("recording_studio.library.items.edit_title")
+  end
+
   test "library page uses a single host page nav" do
     sign_in @owner
     Current.actor = @owner

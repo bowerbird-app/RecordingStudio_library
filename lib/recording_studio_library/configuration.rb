@@ -9,23 +9,26 @@ module RecordingStudioLibrary
       editing: :edit
     }.freeze
 
-    attr_accessor :layout,
-                  :authorize_with,
+    attr_accessor :authorize_with,
                   :library_label,
                   :picker_libraries,
                   :place_label,
                   :unfiltered_access
-    attr_reader :hooks, :auth_roles
+    attr_reader :hooks, :auth_roles, :layout
 
     def initialize
       @hooks = RecordingStudio::Hooks.new
-      @layout = :default
+      @layout = nil
       @auth_roles = default_auth_roles
       @authorize_with = nil
       @library_label = default_library_label
       @picker_libraries = default_picker_libraries
       @place_label = default_place_label
       @unfiltered_access = false
+    end
+
+    def layout=(value)
+      @layout = RecordingStudio::Layout.accept(value)
     end
 
     def merge!(hash)
