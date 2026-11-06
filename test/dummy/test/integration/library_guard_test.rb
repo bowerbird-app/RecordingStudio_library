@@ -25,19 +25,34 @@ class LibraryGuardTest < ActiveSupport::TestCase
 
   teardown do
     Current.actor = nil
-    RecordingStudioLibrary.configuration.unfiltered_access = false
   end
 
-  test "anonymous resolve hides items unless unfiltered_access is on" do
+  test "anonymous resolve hides items" do
     item = record_sample("Anonymous still")
     RecordingStudioLibrary.place!(@holder, item, actor: @user)
 
     hidden = RecordingStudioLibrary.resolve(@holder, actor: nil)
     refute hidden.any? { |entry| entry.item_recording.id == item.id }
+  end
 
-    RecordingStudioLibrary.configuration.unfiltered_access = true
-    visible = RecordingStudioLibrary.resolve(@holder, actor: nil)
+  test "resolve shows items to an actor with Accessible view" do
+    item = record_sample("Granted still")
+    RecordingStudioLibrary.place!(@holder, item, actor: @user)
+
+    visible = RecordingStudioLibrary.resolve(@holder, actor: @user)
     assert visible.any? { |entry| entry.item_recording.id == item.id }
+  end
+
+  test "resolve hides items from an actor without Accessible view" do
+    stranger = User.find_or_create_by!(email: "stranger-#{SecureRandom.hex(4)}@example.com") do |user|
+      user.password = "Password"
+      user.password_confirmation = "Password"
+    end
+    item = record_sample("Hidden still")
+    RecordingStudioLibrary.place!(@holder, item, actor: @user)
+
+    hidden = RecordingStudioLibrary.resolve(@holder, actor: stranger)
+    refute hidden.any? { |entry| entry.item_recording.id == item.id }
   end
 
   test "place refuses an item Accessible hides from the actor" do

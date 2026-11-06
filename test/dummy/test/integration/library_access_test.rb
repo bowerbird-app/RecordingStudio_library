@@ -47,6 +47,24 @@ class LibraryAccessTest < ActiveSupport::TestCase
     refute hidden.any? { |entry| entry.item_recording.id == @item.id }
   end
 
+  test "a signed-in user with no grant cannot create a library via library_for" do
+    empty = Workspace.create!(name: "No grant #{SecureRandom.hex(4)}")
+    empty_root = RecordingStudio.root_recording_for(empty)
+    grant_admin!(@owner, empty_root)
+
+    assert_nil RecordingStudioLibrary.find_library(empty_root)
+    Current.actor = @stranger
+    assert_raises(RecordingStudio::AuthorizationError) do
+      RecordingStudioLibrary.library_for(empty_root, actor: @stranger)
+    end
+    assert_nil RecordingStudioLibrary.find_library(empty_root)
+
+    Current.actor = @owner
+    owned = RecordingStudioLibrary.library_for(empty_root, actor: @owner)
+    assert_predicate owned, :persisted?
+    assert_equal empty_root.id, owned.parent_recording_id
+  end
+
   test "library listing hides items from anonymous visitors" do
     listed = RecordingStudioLibrary::Services::LibraryItems.call(
       library_recording: @library,

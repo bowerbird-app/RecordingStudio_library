@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-11-06
+
+### Changed
+- Library and placement access always go through Recording Studio Accessible `authorized?`. The gem depends on `recording_studio_accessible` `>= 0.24.2`.
+- Removed `configuration.unfiltered_access` and `configuration.authorize_with`. Missing Accessible still denies.
+- Require `recording_studio` `>= 6.5.0`. Root and dummy Gemfiles pin Recording Studio tag `v6.5.0`, Accessible `v0.24.2`, Trashable `v0.12.3`, Metrics `v0.7.3`, Orderable `v0.4.9`, and FlatPack `v0.1.341`. Dummy also pins Root Switchable `v0.11.7` and Cache `v0.6.3`.
+
+### Upgrade notes
+- Pin Recording Studio `>= 6.5.0` (tag `v6.5.0`) and Accessible `>= 0.24.2` (tag `v0.24.2`). Companion tags: Trashable `v0.12.3`, Metrics `v0.7.3`, Orderable `v0.4.9`. Dummy hosts that mount Root Switchable need `v0.11.7` and Cache `v0.6.3`.
+- Delete `config.unfiltered_access` and `config.authorize_with`. System jobs and custom adapters must grant Accessible roles on the recording. Anonymous visitors stay denied unless Accessible allows `:view`.
+- Hosts that copied the install initializer can drop those two commented settings. `auth_roles` still maps library actions onto Accessible roles.
+- Recording Studio `6.5.0` fails closed on writes. Dummy (and hosts) must set `config.authorize_write` and pass an actor. The dummy delegates that core write gate to Accessible `authorized?` (`:edit` on the root). Access grant/bootstrap writes use Accessible `AccessCreationContext`, not `actor.present?`. Library visibility still goes through Accessible.
+
 ## [0.3.0] - 2026-11-05
 
 ### Changed
@@ -81,6 +94,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use `find_library` on read paths. `library_for` remains the find-or-create write path.
 - Attachable still owns its own Library/Placement until a later phase. Do not switch Presskits or Video onto this gem yet.
 
+[0.4.0]: https://github.com/bowerbird-app/RecordingStudio_library/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/bowerbird-app/RecordingStudio_library/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/bowerbird-app/RecordingStudio_library/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/bowerbird-app/RecordingStudio_library/compare/v0.1.4...v0.2.0

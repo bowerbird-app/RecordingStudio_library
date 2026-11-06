@@ -5,17 +5,18 @@ require "open3"
 
 class RecordingStudioLibraryTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.3.0", ::RecordingStudioLibrary::VERSION
+    assert_equal "0.4.0", ::RecordingStudioLibrary::VERSION
   end
 
   def test_engine_exists
     assert_kind_of Class, ::RecordingStudioLibrary::Engine
   end
 
-  def test_gemspec_pins_recording_studio_6_3
+  def test_gemspec_pins_recording_studio_and_accessible
     gemspec = File.read(File.expand_path("../recording_studio_library.gemspec", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.3.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.5.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", ">= 0.24.2"'
     assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.341"'
     assert_includes gemspec, "https://github.com/bowerbird-app/RecordingStudio_library"
   end
@@ -32,20 +33,20 @@ class RecordingStudioLibraryTest < Minitest::Test
     dummy = File.read(File.expand_path("dummy/Gemfile", __dir__))
 
     [
-      'github: "bowerbird-app/RecordingStudio", tag: "v6.3.0"',
-      'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.24.1"',
-      'github: "bowerbird-app/RecordingStudio_orderable", tag: "v0.4.8"',
-      'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.12.2"',
+      'github: "bowerbird-app/RecordingStudio", tag: "v6.5.0"',
+      'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.24.2"',
+      'github: "bowerbird-app/RecordingStudio_orderable", tag: "v0.4.9"',
+      'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.12.3"',
       'github: "bowerbird-app/flatpack", tag: "v0.1.341"'
     ].each do |pin|
       assert_includes root, pin
       assert_includes dummy, pin
     end
 
-    assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.11.5"'
-    assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.6.2"'
-    assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.2"'
-    assert_includes root, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.2"'
+    assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.11.7"'
+    assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.6.3"'
+    assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.3"'
+    assert_includes root, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.3"'
   end
 
   def test_does_not_ship_copied_core_hooks_or_base_service

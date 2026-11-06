@@ -72,7 +72,7 @@ RecordingStudioLibrary.usages(item)
 
 `place!` records the placement with `RecordingStudio.record!`, then appends it with Orderable. It requires the actor can view the item, the item is in the same workspace, and the holder allows that type. If Orderable append fails, `place!` fails. `place_new!` checks the registered adapter, library types/keys, holder types, and upload rights on both the holder and the library, then records the item and places it in one transaction.
 
-`resolve` drops trashed or missing items, refuses cross-workspace pointers, and never returns items the actor cannot see. Access checks call Accessible `allowed?`. Anonymous visitors go through Accessible too. Set `RecordingStudioLibrary.configuration.unfiltered_access = true` only for trusted system jobs that must see everything. Hosts can still set `authorize_with` for a custom adapter.
+`resolve` drops trashed or missing items, refuses cross-workspace pointers, and never returns items the actor cannot see. Access checks call Accessible `authorized?`. Anonymous visitors and system jobs go through Accessible too. Grant a system actor on the recording instead of bypassing access.
 
 Sample edit uses `revise`. Sample trash uses `recording_studio_trashable_trash!` only.
 
@@ -99,7 +99,7 @@ Staff admin UI belongs in Recording Studio Admin, not here.
 
 ## Install
 
-1. Add the gem and pin Recording Studio `>= 6.3.0`, Orderable, Trashable, Accessible, and Flatpack from GitHub tags (see the README). Leave `config.layout` nil unless the host needs a different shell.
+1. Add the gem and pin Recording Studio `>= 6.5.0`, Accessible `>= 0.24.2`, Orderable, Trashable, and Flatpack from GitHub tags (see the README). Leave `config.layout` nil unless the host needs a different shell.
 2. `bin/rails generate recording_studio_library:install`
 3. `bin/rails generate recording_studio_library:migrations`
 4. `bin/rails db:migrate`

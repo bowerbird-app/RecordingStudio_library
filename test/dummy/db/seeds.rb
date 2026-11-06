@@ -12,7 +12,8 @@ find_or_record_child = lambda do |recordable, root_recording, parent_recording|
     action: "created",
     recordable: recordable,
     root_recording: root_recording,
-    parent_recording: parent_recording
+    parent_recording: parent_recording,
+    actor: Current.actor
   ).recording
 end
 

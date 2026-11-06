@@ -9,22 +9,18 @@ module RecordingStudioLibrary
       editing: :edit
     }.freeze
 
-    attr_accessor :authorize_with,
-                  :library_label,
+    attr_accessor :library_label,
                   :picker_libraries,
-                  :place_label,
-                  :unfiltered_access
+                  :place_label
     attr_reader :hooks, :auth_roles, :layout
 
     def initialize
       @hooks = RecordingStudio::Hooks.new
       @layout = nil
       @auth_roles = default_auth_roles
-      @authorize_with = nil
       @library_label = default_library_label
       @picker_libraries = default_picker_libraries
       @place_label = default_place_label
-      @unfiltered_access = false
     end
 
     def layout=(value)

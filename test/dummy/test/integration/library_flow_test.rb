@@ -61,6 +61,7 @@ class LibraryFlowTest < ActionDispatch::IntegrationTest
   test "place refuses a cross-root item" do
     other = Workspace.create!(name: "Other #{SecureRandom.hex(4)}")
     other_root = RecordingStudio.root_recording_for(other)
+    grant_admin!(@user, other_root)
     other_library = RecordingStudioLibrary.library_for(other_root, actor: @user)
     foreign = RecordingStudio.record!(
       action: "created",
