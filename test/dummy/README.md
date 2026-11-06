@@ -5,6 +5,7 @@ This Rails app exists to validate RecordingStudio Library in a real host applica
 ## What it covers
 
 - Devise authentication with a seeded admin user
+- `config.authorize_write` that checks Accessible `:edit` on the root (required before Recording Studio core 6.5.0). Access bootstrap/grant writes use Accessible `AccessCreationContext`.
 - A workspace that opts into `Library.to`
 - A showcase that opts into `Placeable.to` and Orderable
 - A seeded library of sample items rendered by the built-in dummy adapter

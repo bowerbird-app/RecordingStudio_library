@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pin Recording Studio `>= 6.5.0` (tag `v6.5.0`) and Accessible `>= 0.24.2` (tag `v0.24.2`). Companion tags: Trashable `v0.12.3`, Metrics `v0.7.3`, Orderable `v0.4.9`. Dummy hosts that mount Root Switchable need `v0.11.7` and Cache `v0.6.3`.
 - Delete `config.unfiltered_access` and `config.authorize_with`. System jobs and custom adapters must grant Accessible roles on the recording. Anonymous visitors stay denied unless Accessible allows `:view`.
 - Hosts that copied the install initializer can drop those two commented settings. `auth_roles` still maps library actions onto Accessible roles.
-- Recording Studio `6.5.0` fails closed on writes. Dummy (and hosts) must set `config.authorize_write` and pass an actor. The dummy uses `actor.present?` for that core write gate; library visibility still goes through Accessible.
+- Recording Studio `6.5.0` fails closed on writes. Dummy (and hosts) must set `config.authorize_write` and pass an actor. The dummy delegates that core write gate to Accessible `authorized?` (`:edit` on the root). Access grant/bootstrap writes use Accessible `AccessCreationContext`, not `actor.present?`. Library visibility still goes through Accessible.
 
 ## [0.3.0] - 2026-11-05
 
