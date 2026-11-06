@@ -4,15 +4,15 @@ source "https://rubygems.org"
 gem "recording_studio_library", path: "../.."
 
 # RecordingStudio engine
-gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v6.3.0"
-gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.24.1"
-gem "recording_studio_cache", github: "bowerbird-app/RecordingStudio_cache", tag: "v0.6.2"
-gem "recording_studio_metrics", github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.2"
-gem "recording_studio_orderable", github: "bowerbird-app/RecordingStudio_orderable", tag: "v0.4.8"
-gem "recording_studio_trashable", github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.12.2"
+gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v6.5.0"
+gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.24.2"
+gem "recording_studio_cache", github: "bowerbird-app/RecordingStudio_cache", tag: "v0.6.3"
+gem "recording_studio_metrics", github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.3"
+gem "recording_studio_orderable", github: "bowerbird-app/RecordingStudio_orderable", tag: "v0.4.9"
+gem "recording_studio_trashable", github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.12.3"
 
 # Root switcher for the top nav
-gem "recording_studio_root_switchable", github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.11.5"
+gem "recording_studio_root_switchable", github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.11.7"
 
 # Devise authentication
 gem "devise"

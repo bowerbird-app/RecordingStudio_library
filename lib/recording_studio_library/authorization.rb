@@ -63,10 +63,7 @@ module RecordingStudioLibrary
       end
 
       def visible?(actor:, recording:)
-        return true if RecordingStudioLibrary.configuration.unfiltered_access
-        return false unless accessible_loaded?
-
-        RecordingStudioAccessible::Authorization.allowed?(actor: actor, recording: recording, role: :view)
+        authorized?(actor: actor, recording: recording, role: :view)
       end
 
       def library_owner_for(recording)
@@ -88,11 +85,13 @@ module RecordingStudioLibrary
         role = required_role_for(action)
         return false if role.blank?
 
-        adapter = RecordingStudioLibrary.configuration.authorize_with
-        return !!adapter.call(action: action, actor: actor, recording: recording, role: role) if adapter.respond_to?(:call)
+        authorized?(actor: actor, recording: recording, role: role)
+      end
+
+      def authorized?(actor:, recording:, role:)
         return false unless accessible_loaded?
 
-        RecordingStudioAccessible::Authorization.allowed?(actor: actor, recording: recording, role: role)
+        RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: role)
       end
 
       def required_role_for(action)
@@ -110,7 +109,7 @@ module RecordingStudioLibrary
       end
 
       def accessible_loaded?
-        defined?(RecordingStudioAccessible::Authorization)
+        defined?(RecordingStudioAccessible) && RecordingStudioAccessible.respond_to?(:authorized?)
       end
     end
   end

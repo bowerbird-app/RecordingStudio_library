@@ -19,6 +19,11 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     end
 
     sign_in @user
+    Current.actor = @user
+  end
+
+  teardown do
+    Current.actor = nil
   end
 
   test "install page renders successfully" do
@@ -161,7 +166,8 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
       action: "created",
       recordable: recordable,
       root_recording: root_recording,
-      parent_recording: parent_recording
+      parent_recording: parent_recording,
+      actor: @user
     ).recording
   end
 end
