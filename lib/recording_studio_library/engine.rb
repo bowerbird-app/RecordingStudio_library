@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "api"
+
 module RecordingStudioLibrary
   class Engine < ::Rails::Engine
     isolate_namespace RecordingStudioLibrary
@@ -166,6 +168,10 @@ module RecordingStudioLibrary
       ActiveSupport.on_load(:action_view) do
         include RecordingStudioLibrary::ApplicationHelper
       end
+    end
+
+    initializer "recording_studio_library.api" do
+      config.to_prepare { Api.register! }
     end
   end
 end
