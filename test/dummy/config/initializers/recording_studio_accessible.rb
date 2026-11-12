@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 RecordingStudioAccessible.configure do |config|
-  actors = [ "User" ]
-  actors << "RecordingStudioApi::ApiClient" if defined?(RecordingStudioApi)
-  config.access_actor_types = actors.uniq
+  config.access_actor_types = [ "User" ]
+  config.access_actor_types += [ "RecordingStudioApi::ApiClient" ] if defined?(RecordingStudioApi)
 end

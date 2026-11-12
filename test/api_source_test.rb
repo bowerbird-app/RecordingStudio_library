@@ -25,6 +25,7 @@ class ApiSourceTest < Minitest::Test
 
     assert_includes actions, "capability_action(name, api:)"
     refute_includes actions, "return if ::RecordingStudioApi.capability_action(name, api:)"
+    assert_includes actions, "openapi: { title:, summary: title, description:"
     assert_includes placements, "RecordingStudioLibrary.place!"
     assert_includes placements, "RecordingStudioLibrary.place_new!"
     assert_includes placements, "RecordingStudioLibrary.reorder!"

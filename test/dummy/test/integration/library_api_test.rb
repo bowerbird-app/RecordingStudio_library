@@ -236,6 +236,15 @@ class LibraryApiTest < ActionDispatch::IntegrationTest
     assert_equal :library, open_library.capability
     assert_equal :placeable, place.capability
     assert_equal :placeable, reorder.capability
+    assert_equal "Library - Open", open_library.openapi.fetch(:title)
+    assert_equal "Library - Open", open_library.openapi.fetch(:summary)
+    assert_equal "Library - Find", find_library.openapi.fetch(:title)
+    assert_equal "Library - List", libraries_for.openapi.fetch(:title)
+    assert_equal "Library - Place", place.openapi.fetch(:title)
+    assert_equal "Library - Place New", place_new.openapi.fetch(:title)
+    assert_equal "Library - Reorder Placements", reorder.openapi.fetch(:title)
+    assert_equal "Library - Remove Placement", remove.openapi.fetch(:title)
+    assert_equal "Library - Resolve Placements", resolve.openapi.fetch(:title)
 
     workspace = RecordingStudioApi.recordable_registration_for("Workspace")
     showcase = RecordingStudioApi.recordable_registration_for("Showcase")

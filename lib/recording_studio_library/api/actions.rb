@@ -25,7 +25,7 @@ module RecordingStudioLibrary
           version: "1.0.0",
           http_verb: :post,
           input_contract: contract(definition[:fields]),
-          openapi: { summary: title, description: definition.fetch(:description) }
+          openapi: { title:, summary: title, description: definition.fetch(:description) }
         )
       end
 
