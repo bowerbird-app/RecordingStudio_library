@@ -32,3 +32,4 @@ Sign in with `admin@admin.com` / `Password`.
 - `/users/sign_in` — Devise sign-in
 - `/docs/*` — dummy-only starter pages
 - `/up` — health check
+- `/recording_studio_api` — Recording Studio API (capability actions for library and placements)

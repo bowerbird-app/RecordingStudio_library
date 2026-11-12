@@ -2,7 +2,7 @@
 
 A Recording Studio addon that owns a collection of things, and ordered pointers to them elsewhere. Items stay their own types. Libraries are keyed and host-mounted. Placements only store what is pointed at and in what order.
 
-Version **0.4.0**. Recording Studio dummy GitHub tag `v6.5.0`, Accessible `v0.24.2`, Orderable `v0.4.9`, Trashable `v0.12.3`, Metrics `v0.7.3`, Cache `v0.6.3`, Root Switchable `v0.11.7`, Flatpack `v0.1.341`.
+Version **0.5.0**. Recording Studio dummy GitHub tag `v6.5.0`, Accessible `v0.24.2`, Orderable `v0.4.9`, Trashable `v0.12.3`, Metrics `v0.7.3`, Cache `v0.6.3`, Root Switchable `v0.11.7`, Flatpack `v0.1.341`, API `v0.21.3`.
 
 ## What it does
 
@@ -43,7 +43,7 @@ bin/dev
 
 ```ruby
 # Gemfile
-gem "recording_studio_library", github: "bowerbird-app/RecordingStudio_library", tag: "v0.4.0"
+gem "recording_studio_library", github: "bowerbird-app/RecordingStudio_library", tag: "v0.5.0"
 gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v6.5.0"
 gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.24.2"
 gem "recording_studio_orderable", github: "bowerbird-app/RecordingStudio_orderable", tag: "v0.4.9"
@@ -59,6 +59,8 @@ bin/rails tailwindcss:build
 ```
 
 Then opt a parent into `Library.to` and a holder into `Placeable.to`, and register an adapter per item type. Pin `@hotwired/turbo-rails` in the host importmap so the placements picker can load inside a navigable modal. Staff screens belong in Recording Studio Admin, not in this gem.
+
+If the host mounts Recording Studio API, this gem registers capability actions (`library_place`, `library_place_new`, `library_reorder_placements`, `library_remove_placement`, `library_open_library`, `library_find_library`, `library_libraries_for`, `library_resolve_placements`). Enable those names on the parent and holder type APIs. Do not expose generic Library or Placement create/update.
 
 ## Development
 

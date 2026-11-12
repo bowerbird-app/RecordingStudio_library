@@ -11,6 +11,7 @@ RecordingStudio.configure do |config|
     "RecordingStudioLibrary::Placement",
     "RecordingStudioLibrary::SampleItem"
   ]
+  config.recordable_types += ["RecordingStudioApi::AdminApi"] if defined?(RecordingStudioApi)
 
   # Require each configured ActiveRecord type to call recording_studio_recordable.
   config.require_recordable_declarations = true
@@ -27,7 +28,12 @@ RecordingStudio.configure do |config|
   # Access grant/bootstrap writes go through Accessible's AccessCreationContext
   # (same path as grant_access / bootstrap_owner_access!), not a logged-in check.
   config.authorize_write = lambda { |actor:, root_recording:, recordable:, **|
-    next false unless actor.is_a?(User) && actor.persisted?
+    next true if defined?(RecordingStudioApi::ApiClient) &&
+                 (recordable.is_a?(RecordingStudioApi::ApiClient) ||
+                  (defined?(RecordingStudioApi::ApiCredential) && recordable.is_a?(RecordingStudioApi::ApiCredential)) ||
+                  (defined?(RecordingStudioApi::ApiAccessToken) && recordable.is_a?(RecordingStudioApi::ApiAccessToken))) &&
+                 RecordingStudioAccessible::AccessCreationContext.allowed?
+    next false unless (actor.is_a?(User) || (defined?(RecordingStudioApi::ApiClient) && actor.is_a?(RecordingStudioApi::ApiClient))) && actor.persisted?
     next false unless root_recording
 
     if defined?(RecordingStudio::Access) && recordable.is_a?(RecordingStudio::Access)

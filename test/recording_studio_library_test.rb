@@ -5,7 +5,7 @@ require "open3"
 
 class RecordingStudioLibraryTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.4.0", ::RecordingStudioLibrary::VERSION
+    assert_equal "0.5.0", ::RecordingStudioLibrary::VERSION
   end
 
   def test_engine_exists
@@ -47,6 +47,16 @@ class RecordingStudioLibraryTest < Minitest::Test
     assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.6.3"'
     assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.3"'
     assert_includes root, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.3"'
+    [
+      'github: "bowerbird-app/RecordingStudio_api", tag: "v0.21.3"',
+      'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.11.0"',
+      'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.7.3"',
+      'github: "bowerbird-app/RecordingStudio_moveable", tag: "v4.1.0"',
+      'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.2.0"'
+    ].each do |pin|
+      assert_includes root, pin
+      assert_includes dummy, pin
+    end
   end
 
   def test_does_not_ship_copied_core_hooks_or_base_service

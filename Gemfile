@@ -21,6 +21,11 @@ group :development, :test do
   gem "debug"
   gem "minitest-mock"
   gem "pg", "~> 1.1"
+  gem "recording_studio_admin", github: "bowerbird-app/RecordingStudio_admin", tag: "v2.11.0"
+  gem "recording_studio_api", github: "bowerbird-app/RecordingStudio_api", tag: "v0.21.3"
+  gem "recording_studio_icons", github: "bowerbird-app/RecordingStudio_icons", tag: "v0.2.0"
+  gem "recording_studio_logs", github: "bowerbird-app/RecordingStudio_logs", tag: "v0.7.3"
+  gem "recording_studio_moveable", github: "bowerbird-app/RecordingStudio_moveable", tag: "v4.1.0"
   gem "simplecov", require: false
 end
 
