@@ -9,10 +9,10 @@ module RecordingStudioLibrary
       class Place
         def self.call(context)
           Errors.wrap do
-            context.access_grant.authorize!(recording: context.recording, role: :edit)
+            RecordingStudioLibrary::Authorization.authorize_placement!(action: :upload, actor: context.actor, recording: context.recording)
             RecordingStudioLibrary.place!(
               context.recording,
-              Lookup.recording!(context.params[:item_recording_id]),
+              Lookup.recording!(context.params[:item_recording_id], context),
               actor: context.actor
             )
           end
@@ -22,10 +22,10 @@ module RecordingStudioLibrary
       class PlaceNew
         def self.call(context)
           Errors.wrap do
-            context.access_grant.authorize!(recording: context.recording, role: :edit)
+            RecordingStudioLibrary::Authorization.authorize_placement!(action: :upload, actor: context.actor, recording: context.recording)
             RecordingStudioLibrary.place_new!(
               context.recording,
-              library: Lookup.recording!(context.params[:library_id]),
+              library: Lookup.recording!(context.params[:library_id], context),
               type: context.params[:type],
               attrs: context.params[:attrs] || {},
               actor: context.actor
@@ -37,7 +37,7 @@ module RecordingStudioLibrary
       class ReorderPlacements
         def self.call(context)
           Errors.wrap do
-            context.access_grant.authorize!(recording: context.recording, role: :edit)
+            RecordingStudioLibrary::Authorization.authorize_placement!(action: :upload, actor: context.actor, recording: context.recording)
             RecordingStudioLibrary.reorder!(
               context.recording,
               context.params[:ordered_recording_ids],
@@ -52,9 +52,9 @@ module RecordingStudioLibrary
       class RemovePlacement
         def self.call(context)
           Errors.wrap do
-            context.access_grant.authorize!(recording: context.recording, role: :admin)
+            RecordingStudioLibrary::Authorization.authorize_placement!(action: :remove, actor: context.actor, recording: context.recording)
             RecordingStudioLibrary.remove!(
-              Lookup.recording!(context.params[:placement_id]),
+              Lookup.recording!(context.params[:placement_id], context),
               holder: context.recording,
               actor: context.actor
             )
@@ -65,12 +65,8 @@ module RecordingStudioLibrary
       class ResolvePlacements
         def self.call(context)
           Errors.wrap do
-            context.access_grant.authorize!(recording: context.recording, role: :view)
-            RecordingStudioLibrary.resolve(
-              context.recording,
-              include_trashed: context.params[:include_trashed] || false,
-              actor: context.actor
-            )
+            RecordingStudioLibrary::Authorization.authorize_placement!(action: :view, actor: context.actor, recording: context.recording)
+            RecordingStudioLibrary.resolve(context.recording, actor: context.actor)
           end
         end
       end

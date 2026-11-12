@@ -8,12 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.0] - 2026-11-12
 
 ### Added
-- Recording Studio API capability actions as thin wrappers over the existing helpers: `place`, `place_new`, `reorder_placements`, `remove_placement`, `open_library`, `find_library`, `libraries_for`, and `resolve_placements`.
+- Recording Studio API capability actions as thin wrappers over the existing helpers: `library_place`, `library_place_new`, `library_reorder_placements`, `library_remove_placement`, `library_open_library`, `library_find_library`, `library_libraries_for`, and `library_resolve_placements`.
 - Dummy mounts Recording Studio API so hosts and MCP adapters can call those actions on types that enable `:library` or `:placeable`.
 
 ### Upgrade notes
 - Pin `v0.5.0`. There is no library migration. Hosts that already have Recording Studio API get the actions when this gem loads. Enable them on the parent and holder recordable type APIs (`capability_actions`). Library and Placement stay off generic create/update.
-- `place`, `place_new`, and `reorder_placements` need Accessible `:edit` (upload). `remove_placement` needs `:admin` (remove). `open_library` needs `:edit`. `find_library`, `libraries_for`, and `resolve_placements` need `:view`.
+- Library actions honor `configuration.auth_roles`. Defaults: `library_place`, `library_place_new`, and `library_reorder_placements` need upload. `library_remove_placement` needs remove. `library_open_library` needs upload. `library_find_library`, `library_libraries_for`, and `library_resolve_placements` need view.
 - Development and dummy Gemfiles pin Recording Studio API `v0.21.3`, Admin `v2.11.0`, Logs `v0.7.3`, Moveable `v4.1.0`, and Icons `v0.2.0`. API’s engine loads Admin screens.
 
 ## [0.4.0] - 2026-11-06

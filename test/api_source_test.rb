@@ -24,6 +24,7 @@ class ApiSourceTest < Minitest::Test
     placements = File.read(File.expand_path("../lib/recording_studio_library/api/placement_handlers.rb", __dir__))
 
     assert_includes actions, "capability_action(name, api:)"
+    refute_includes actions, "return if ::RecordingStudioApi.capability_action(name, api:)"
     assert_includes placements, "RecordingStudioLibrary.place!"
     assert_includes placements, "RecordingStudioLibrary.place_new!"
     assert_includes placements, "RecordingStudioLibrary.reorder!"
@@ -31,6 +32,8 @@ class ApiSourceTest < Minitest::Test
     assert_includes library, "RecordingStudioLibrary.library_for"
     assert_includes library, "RecordingStudioLibrary.find_library"
     assert_includes library, "RecordingStudioLibrary.libraries_for"
+    assert_includes library, "authorize_library!"
+    assert_includes placements, "authorize_placement!"
     assert_includes placements, "RecordingStudioLibrary.resolve"
     [actions, library, placements].each do |source|
       refute_includes source, "const_set"

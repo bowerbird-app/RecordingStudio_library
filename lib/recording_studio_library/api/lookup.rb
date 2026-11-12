@@ -9,8 +9,8 @@ module RecordingStudioLibrary
         params[:key].presence || :default
       end
 
-      def recording!(id)
-        found = RecordingStudio::Recording.find_by(id: id)
+      def recording!(id, context)
+        found = RecordingStudio::Recording.for_root(context.root_recording&.id).find_by(id: id)
         raise ::RecordingStudioApi::NotFoundError, "Resource was not found in this API scope" if found.nil?
 
         found

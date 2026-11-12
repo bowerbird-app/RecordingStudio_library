@@ -60,7 +60,7 @@ bin/rails tailwindcss:build
 
 Then opt a parent into `Library.to` and a holder into `Placeable.to`, and register an adapter per item type. Pin `@hotwired/turbo-rails` in the host importmap so the placements picker can load inside a navigable modal. Staff screens belong in Recording Studio Admin, not in this gem.
 
-If the host mounts Recording Studio API, this gem registers capability actions (`place`, `place_new`, `reorder_placements`, `remove_placement`, `open_library`, `find_library`, `libraries_for`, `resolve_placements`). Enable those names on the parent and holder type APIs. Do not expose generic Library or Placement create/update.
+If the host mounts Recording Studio API, this gem registers capability actions (`library_place`, `library_place_new`, `library_reorder_placements`, `library_remove_placement`, `library_open_library`, `library_find_library`, `library_libraries_for`, `library_resolve_placements`). Enable those names on the parent and holder type APIs. Do not expose generic Library or Placement create/update.
 
 ## Development
 

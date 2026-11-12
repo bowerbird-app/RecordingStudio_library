@@ -27,25 +27,25 @@ class LibraryApiTest < ActionDispatch::IntegrationTest
 
   teardown { Current.actor = @previous_actor }
 
-  test "open_library find_library and libraries_for go through library helpers" do
-    missing = call(:post, "/workspaces/#{@root.id}/actions/find_library", @editor_token)
+  test "library_open_library library_find_library and library_libraries_for go through library helpers" do
+    missing = call(:post, "/workspaces/#{@root.id}/actions/library_find_library", @editor_token)
     assert_response :not_found, response.body
 
-    opened = call(:post, "/workspaces/#{@root.id}/actions/open_library", @editor_token)
+    opened = call(:post, "/workspaces/#{@root.id}/actions/library_open_library", @editor_token)
     assert_response :success, response.body
     library_id = opened.fetch("id")
     assert_equal library_id, RecordingStudioLibrary.find_library(@root).id
 
-    found = call(:post, "/workspaces/#{@root.id}/actions/find_library", @editor_token)
+    found = call(:post, "/workspaces/#{@root.id}/actions/library_find_library", @editor_token)
     assert_response :success, response.body
     assert_equal library_id, found.fetch("id")
 
-    listed = call(:post, "/workspaces/#{@root.id}/actions/libraries_for", @editor_token)
+    listed = call(:post, "/workspaces/#{@root.id}/actions/library_libraries_for", @editor_token)
     assert_response :success, response.body
     assert_equal [library_id], listed.fetch("records").map { |row| row.fetch("id") }
   end
 
-  test "place resolve reorder and remove_placement go through placement helpers" do
+  test "library_place resolve reorder and remove go through placement helpers" do
     library = RecordingStudioLibrary.library_for(@root, actor: @owner)
     holder = showcase_recording("API gallery")
     item = sample_item(library, "API still")
@@ -53,7 +53,7 @@ class LibraryApiTest < ActionDispatch::IntegrationTest
 
     placed = call(
       :post,
-      "/showcases/#{holder.id}/actions/place",
+      "/showcases/#{holder.id}/actions/library_place",
       @editor_token,
       item_recording_id: item.id
     )
@@ -62,7 +62,7 @@ class LibraryApiTest < ActionDispatch::IntegrationTest
 
     created = call(
       :post,
-      "/showcases/#{holder.id}/actions/place_new",
+      "/showcases/#{holder.id}/actions/library_place_new",
       @editor_token,
       library_id: library.id,
       type: RecordingStudioLibrary::SampleItem.name,
@@ -74,7 +74,7 @@ class LibraryApiTest < ActionDispatch::IntegrationTest
     second_placement = RecordingStudioLibrary.place!(holder, second, actor: @owner)
     reordered = call(
       :post,
-      "/showcases/#{holder.id}/actions/reorder_placements",
+      "/showcases/#{holder.id}/actions/library_reorder_placements",
       @editor_token,
       ordered_recording_ids: [second_placement.id, first_id]
     )
@@ -83,13 +83,13 @@ class LibraryApiTest < ActionDispatch::IntegrationTest
     ordered_ids = RecordingStudioLibrary.resolve(holder, actor: @owner).map { |entry| entry.placement_recording.id }
     assert_equal [second_placement.id, first_id], ordered_ids.first(2)
 
-    resolved = call(:post, "/showcases/#{holder.id}/actions/resolve_placements", @viewer_token)
+    resolved = call(:post, "/showcases/#{holder.id}/actions/library_resolve_placements", @viewer_token)
     assert_response :success, response.body
     assert_includes resolved.fetch("placements").map { |row| row.fetch("item_id") }, item.id
 
     removed = call(
       :post,
-      "/showcases/#{holder.id}/actions/remove_placement",
+      "/showcases/#{holder.id}/actions/library_remove_placement",
       @admin_token,
       placement_id: second_placement.id
     )
@@ -105,15 +105,15 @@ class LibraryApiTest < ActionDispatch::IntegrationTest
     item = sample_item(library, "Forbidden still")
     placement = RecordingStudioLibrary.place!(holder, item, actor: @owner)
 
-    call(:post, "/workspaces/#{@root.id}/actions/open_library", @viewer_token)
+    call(:post, "/workspaces/#{@root.id}/actions/library_open_library", @viewer_token)
     assert_response :forbidden, response.body
 
-    call(:post, "/showcases/#{holder.id}/actions/place", @viewer_token, item_recording_id: item.id)
+    call(:post, "/showcases/#{holder.id}/actions/library_place", @viewer_token, item_recording_id: item.id)
     assert_response :forbidden, response.body
 
     call(
       :post,
-      "/showcases/#{holder.id}/actions/place_new",
+      "/showcases/#{holder.id}/actions/library_place_new",
       @viewer_token,
       library_id: library.id,
       type: RecordingStudioLibrary::SampleItem.name,
@@ -123,7 +123,7 @@ class LibraryApiTest < ActionDispatch::IntegrationTest
 
     call(
       :post,
-      "/showcases/#{holder.id}/actions/reorder_placements",
+      "/showcases/#{holder.id}/actions/library_reorder_placements",
       @viewer_token,
       ordered_recording_ids: [placement.id]
     )
@@ -131,7 +131,7 @@ class LibraryApiTest < ActionDispatch::IntegrationTest
 
     call(
       :post,
-      "/showcases/#{holder.id}/actions/remove_placement",
+      "/showcases/#{holder.id}/actions/library_remove_placement",
       @editor_token,
       placement_id: placement.id
     )
@@ -142,14 +142,52 @@ class LibraryApiTest < ActionDispatch::IntegrationTest
     RecordingStudioLibrary.library_for(@root, actor: @owner)
     holder = showcase_recording("Readable gallery")
 
-    call(:post, "/workspaces/#{@root.id}/actions/find_library", @viewer_token)
+    call(:post, "/workspaces/#{@root.id}/actions/library_find_library", @viewer_token)
     assert_response :success, response.body
 
-    call(:post, "/workspaces/#{@root.id}/actions/libraries_for", @viewer_token)
+    call(:post, "/workspaces/#{@root.id}/actions/library_libraries_for", @viewer_token)
     assert_response :success, response.body
 
-    call(:post, "/showcases/#{holder.id}/actions/resolve_placements", @viewer_token)
+    call(:post, "/showcases/#{holder.id}/actions/library_resolve_placements", @viewer_token)
     assert_response :success, response.body
+  end
+
+  test "auth_roles view admin forbids a viewer from library reads" do
+    RecordingStudioLibrary.library_for(@root, actor: @owner)
+    previous = RecordingStudioLibrary.configuration.auth_roles.dup
+    RecordingStudioLibrary.configuration.auth_roles = previous.merge(view: :admin)
+
+    call(:post, "/workspaces/#{@root.id}/actions/library_libraries_for", @viewer_token)
+    assert_response :forbidden, response.body
+
+    call(:post, "/workspaces/#{@root.id}/actions/library_find_library", @viewer_token)
+    assert_response :forbidden, response.body
+  ensure
+    RecordingStudioLibrary.configuration.auth_roles = previous if previous
+  end
+
+  test "auth_roles upload admin forbids place and reorder with 403" do
+    library = RecordingStudioLibrary.library_for(@root, actor: @owner)
+    holder = showcase_recording("Tight gallery")
+    item = sample_item(library, "Tight still")
+    placement = RecordingStudioLibrary.place!(holder, item, actor: @owner)
+    previous = RecordingStudioLibrary.configuration.auth_roles.dup
+    RecordingStudioLibrary.configuration.auth_roles = previous.merge(upload: :admin)
+
+    call(:post, "/showcases/#{holder.id}/actions/library_place", @editor_token, item_recording_id: item.id)
+    assert_response :forbidden, response.body
+    refute_equal 422, response.status
+
+    call(
+      :post,
+      "/showcases/#{holder.id}/actions/library_reorder_placements",
+      @editor_token,
+      ordered_recording_ids: [placement.id]
+    )
+    assert_response :forbidden, response.body
+    refute_equal 422, response.status
+  ensure
+    RecordingStudioLibrary.configuration.auth_roles = previous if previous
   end
 
   test "a recording in another workspace is not found" do
@@ -164,28 +202,28 @@ class LibraryApiTest < ActionDispatch::IntegrationTest
     ).recording
     Current.actor = @owner
 
-    call(:post, "/workspaces/#{@other_root.id}/actions/find_library", @editor_token)
+    call(:post, "/workspaces/#{@other_root.id}/actions/library_find_library", @editor_token)
     assert_response :not_found, response.body
 
-    call(:post, "/workspaces/#{@other_root.id}/actions/open_library", @editor_token)
+    call(:post, "/workspaces/#{@other_root.id}/actions/library_open_library", @editor_token)
     assert_response :not_found, response.body
 
-    call(:post, "/showcases/#{other_holder.id}/actions/resolve_placements", @editor_token)
+    call(:post, "/showcases/#{other_holder.id}/actions/library_resolve_placements", @editor_token)
     assert_response :not_found, response.body
 
-    call(:post, "/showcases/#{other_holder.id}/actions/place", @editor_token, item_recording_id: @root.id)
+    call(:post, "/showcases/#{other_holder.id}/actions/library_place", @editor_token, item_recording_id: @root.id)
     assert_response :not_found, response.body
   end
 
   test "library capability actions match Accessible roles" do
-    open_library = RecordingStudioApi.capability_action(:open_library)
-    find_library = RecordingStudioApi.capability_action(:find_library)
-    libraries_for = RecordingStudioApi.capability_action(:libraries_for)
-    place = RecordingStudioApi.capability_action(:place)
-    place_new = RecordingStudioApi.capability_action(:place_new)
-    reorder = RecordingStudioApi.capability_action(:reorder_placements)
-    remove = RecordingStudioApi.capability_action(:remove_placement)
-    resolve = RecordingStudioApi.capability_action(:resolve_placements)
+    open_library = RecordingStudioApi.capability_action(:library_open_library)
+    find_library = RecordingStudioApi.capability_action(:library_find_library)
+    libraries_for = RecordingStudioApi.capability_action(:library_libraries_for)
+    place = RecordingStudioApi.capability_action(:library_place)
+    place_new = RecordingStudioApi.capability_action(:library_place_new)
+    reorder = RecordingStudioApi.capability_action(:library_reorder_placements)
+    remove = RecordingStudioApi.capability_action(:library_remove_placement)
+    resolve = RecordingStudioApi.capability_action(:library_resolve_placements)
 
     assert_equal :edit, open_library.required_role
     assert_equal :view, find_library.required_role
@@ -201,8 +239,8 @@ class LibraryApiTest < ActionDispatch::IntegrationTest
 
     workspace = RecordingStudioApi.recordable_registration_for("Workspace")
     showcase = RecordingStudioApi.recordable_registration_for("Showcase")
-    assert_equal %w[find_library libraries_for open_library], workspace.capability_actions.sort
-    assert_equal %w[place place_new remove_placement reorder_placements resolve_placements],
+    assert_equal %w[library_find_library library_libraries_for library_open_library], workspace.capability_actions.sort
+    assert_equal %w[library_place library_place_new library_remove_placement library_reorder_placements library_resolve_placements],
                  showcase.capability_actions.sort
     refute RecordingStudioApi.recordable_registration_for("RecordingStudioLibrary::Library")
     refute RecordingStudioApi.recordable_registration_for("RecordingStudioLibrary::Placement")

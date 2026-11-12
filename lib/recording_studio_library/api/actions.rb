@@ -13,7 +13,8 @@ module RecordingStudioLibrary
 
       def register_action(api, definition)
         name = definition.fetch(:name)
-        return if ::RecordingStudioApi.capability_action(name, api:)
+        existing = ::RecordingStudioApi.capability_action(name, api:)
+        return if existing && existing.handler.to_s.start_with?("RecordingStudioLibrary::Api::")
 
         ::RecordingStudioApi.register_capability_action(name, api:, **payload(definition))
       end
@@ -24,7 +25,7 @@ module RecordingStudioLibrary
           version: "1.0.0",
           http_verb: :post,
           input_contract: contract(definition[:fields]),
-          openapi: { title:, summary: title, description: definition.fetch(:description) }
+          openapi: { summary: title, description: definition.fetch(:description) }
         )
       end
 

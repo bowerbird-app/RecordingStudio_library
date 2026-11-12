@@ -9,7 +9,7 @@ module RecordingStudioLibrary
       class OpenLibrary
         def self.call(context)
           Errors.wrap do
-            context.access_grant.authorize!(recording: context.recording, role: :edit)
+            RecordingStudioLibrary::Authorization.authorize_library!(action: :upload, actor: context.actor, recording: context.recording)
             RecordingStudioLibrary.library_for(
               context.recording,
               key: Lookup.library_key(context.params),
@@ -22,7 +22,7 @@ module RecordingStudioLibrary
       class FindLibrary
         def self.call(context)
           Errors.wrap do
-            context.access_grant.authorize!(recording: context.recording, role: :view)
+            RecordingStudioLibrary::Authorization.authorize_library!(action: :view, actor: context.actor, recording: context.recording)
             library = RecordingStudioLibrary.find_library(
               context.recording,
               key: Lookup.library_key(context.params)
@@ -37,7 +37,7 @@ module RecordingStudioLibrary
       class LibrariesFor
         def self.call(context)
           Errors.wrap do
-            context.access_grant.authorize!(recording: context.recording, role: :view)
+            RecordingStudioLibrary::Authorization.authorize_library!(action: :view, actor: context.actor, recording: context.recording)
             RecordingStudioLibrary.libraries_for(context.recording)
           end
         end

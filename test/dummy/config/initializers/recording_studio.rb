@@ -28,25 +28,29 @@ RecordingStudio.configure do |config|
   # missing actor raises ActorRequired. `actor.present?` is not a write policy.
   # Access grant/bootstrap writes go through Accessible's AccessCreationContext
   # (same path as grant_access / bootstrap_owner_access!), not a logged-in check.
-  config.authorize_write = lambda { |actor:, root_recording:, recording: nil, parent_recording: nil, recordable: nil, **|
-    next false unless defined?(RecordingStudioAccessible)
-    next false unless actor.respond_to?(:persisted?) && actor.persisted?
-
-    target = recording || parent_recording || root_recording
-    next false unless target
-    next true if defined?(RecordingStudio::Access) &&
-                 recordable.is_a?(RecordingStudio::Access) &&
+  config.authorize_write = lambda { |actor:, root_recording:, recordable:, **|
+    next true if defined?(RecordingStudioApi) &&
+                 recordable.class.name.to_s.start_with?("RecordingStudioApi::") &&
                  RecordingStudioAccessible::AccessCreationContext.allowed?
+    next false unless actor.respond_to?(:persisted?) && actor.persisted?
+    next false unless actor.is_a?(User) || actor.class.name.to_s.start_with?("RecordingStudioApi::")
+    next false unless root_recording
 
-    api_engine_recordable = defined?(RecordingStudioApi) &&
-                            recordable.class.name.to_s.start_with?("RecordingStudioApi::")
-    next true if api_engine_recordable && RecordingStudioAccessible::AccessCreationContext.allowed?
+    if defined?(RecordingStudio::Access) && recordable.is_a?(RecordingStudio::Access)
+      next true if RecordingStudioAccessible::AccessCreationContext.allowed?
 
-    RecordingStudioAccessible.authorized?(
-      actor: actor,
-      recording: target,
-      role: :edit
-    )
+      RecordingStudioAccessible.authorized?(
+        actor: actor,
+        recording: root_recording,
+        role: :admin
+      )
+    else
+      RecordingStudioAccessible.authorized?(
+        actor: actor,
+        recording: root_recording,
+        role: :edit
+      )
+    end
   }
 
   # Emit ActiveSupport::Notifications events

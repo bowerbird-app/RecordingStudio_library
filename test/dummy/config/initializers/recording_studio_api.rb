@@ -18,7 +18,7 @@ RecordingStudioApi.register_recordable_type_api(
   "Workspace",
   operations: %i[show],
   auto_capability_actions: false,
-  capability_actions: %i[open_library find_library libraries_for],
+  capability_actions: %i[library_open_library library_find_library library_libraries_for],
   serializer: ->(workspace, **) { { name: workspace.name } },
   output_keys: %i[name]
 )
@@ -27,7 +27,7 @@ RecordingStudioApi.register_recordable_type_api(
   "Showcase",
   operations: %i[show],
   auto_capability_actions: false,
-  capability_actions: %i[place place_new reorder_placements remove_placement resolve_placements],
+  capability_actions: %i[library_place library_place_new library_reorder_placements library_remove_placement library_resolve_placements],
   serializer: ->(showcase, **) { { title: showcase.title } },
   output_keys: %i[title]
 )

@@ -70,7 +70,7 @@ RecordingStudioLibrary.usages(item)
 
 `library_for` is the write path. Screens that only look up a library use `find_library` so a GET cannot create one.
 
-Recording Studio API exposes the same helpers as capability actions. Enable them on the host types that already have `:library` or `:placeable`. Library and Placement stay off generic API create/update.
+Recording Studio API exposes the same helpers as capability actions (`library_place`, `library_open_library`, and the rest). Enable them on the host types that already have `:library` or `:placeable`. Library and Placement stay off generic API create/update.
 
 `place!` records the placement with `RecordingStudio.record!`, then appends it with Orderable. It requires the actor can view the item, the item is in the same workspace, and the holder allows that type. If Orderable append fails, `place!` fails. `place_new!` checks the registered adapter, library types/keys, holder types, and upload rights on both the holder and the library, then records the item and places it in one transaction.
 
