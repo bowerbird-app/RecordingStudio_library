@@ -36,9 +36,9 @@ previous_actor = Current.actor
 Current.actor = user
 
 begin
-  root_recording = RecordingStudio.root_recording_for(workspace)
-  accessible_root_recording = RecordingStudio.root_recording_for(accessible_workspace)
-  private_root_recording = RecordingStudio.root_recording_for(private_workspace)
+  root_recording = RecordingStudio.create_root_recording!(workspace, actor: user)
+  accessible_root_recording = RecordingStudio.create_root_recording!(accessible_workspace, actor: user)
+  private_root_recording = RecordingStudio.create_root_recording!(private_workspace, actor: user)
 
   [root_recording, accessible_root_recording, private_root_recording].each do |root|
     RecordingStudioAccessible.bootstrap_owner_access!(recording: root, actor: user)

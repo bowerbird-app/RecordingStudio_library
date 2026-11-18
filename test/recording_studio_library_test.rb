@@ -5,7 +5,7 @@ require "open3"
 
 class RecordingStudioLibraryTest < Minitest::Test
   def test_version_matches_release
-    assert_equal "0.5.0", ::RecordingStudioLibrary::VERSION
+    assert_equal "0.6.0", ::RecordingStudioLibrary::VERSION
   end
 
   def test_engine_exists
@@ -15,7 +15,7 @@ class RecordingStudioLibraryTest < Minitest::Test
   def test_gemspec_pins_recording_studio_and_accessible
     gemspec = File.read(File.expand_path("../recording_studio_library.gemspec", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 6.5.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 7.7"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_accessible", ">= 0.24.2"'
     assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.341"'
     assert_includes gemspec, "https://github.com/bowerbird-app/RecordingStudio_library"
@@ -26,6 +26,7 @@ class RecordingStudioLibraryTest < Minitest::Test
     cursor_files = spec.files.select { |path| path == ".cursor" || path.split("/").include?(".cursor") }
 
     assert_empty cursor_files, "gemspec must not package .cursor/ (got #{cursor_files.inspect})"
+    assert_includes spec.files, "UPGRADING.md"
   end
 
   def test_root_and_dummy_gemfiles_pin_github_tags
@@ -33,26 +34,26 @@ class RecordingStudioLibraryTest < Minitest::Test
     dummy = File.read(File.expand_path("dummy/Gemfile", __dir__))
 
     [
-      'github: "bowerbird-app/RecordingStudio", tag: "v6.5.0"',
-      'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.24.2"',
-      'github: "bowerbird-app/RecordingStudio_orderable", tag: "v0.4.9"',
-      'github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.12.3"',
-      'github: "bowerbird-app/flatpack", tag: "v0.1.341"'
+      'github: "bowerbird-app/RecordingStudio", tag: "v7.7.1"',
+      'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.54.1"',
+      'github: "bowerbird-app/RecordingStudio_orderable", tag: "v0.11.0"',
+      'github: "bowerbird-app/RecordingStudio_trashable", tag: "v1.2.1"',
+      'github: "bowerbird-app/flatpack", tag: "v0.1.378"'
     ].each do |pin|
       assert_includes root, pin
       assert_includes dummy, pin
     end
 
-    assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.11.7"'
-    assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.6.3"'
-    assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.3"'
-    assert_includes root, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.7.3"'
+    assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.16.0"'
+    assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.7.1"'
+    assert_includes dummy, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.9.2"'
+    assert_includes root, 'github: "bowerbird-app/RecordingStudio_metrics", tag: "v0.9.2"'
     [
-      'github: "bowerbird-app/RecordingStudio_api", tag: "v0.21.3"',
-      'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.11.0"',
-      'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.7.3"',
-      'github: "bowerbird-app/RecordingStudio_moveable", tag: "v4.1.0"',
-      'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.2.0"'
+      'github: "bowerbird-app/RecordingStudio_api", tag: "v1.16.0"',
+      'github: "bowerbird-app/RecordingStudio_admin", tag: "v2.19.0"',
+      'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.8.1"',
+      'github: "bowerbird-app/RecordingStudio_moveable", tag: "v6.0.2"',
+      'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.4.2"'
     ].each do |pin|
       assert_includes root, pin
       assert_includes dummy, pin
@@ -245,6 +246,29 @@ class RecordingStudioLibraryTest < Minitest::Test
     assert_includes source, "authorize_library!"
     assert_includes source, "ActiveRecord::Base.transaction"
     refute_match(/safe_constantize.*\n.*record!/m, source)
+  end
+
+  def test_dummy_ships_api_config_and_leaves_core_migrations_to_hosts
+    dummy = File.expand_path("dummy", __dir__)
+    api_config = File.read(File.join(dummy, "config/recording_studio_api.yml"))
+    owner_migration = File.join(dummy, "db/migrate/20261117000024_add_owner_to_recording_studio_api_api_clients.rb")
+    migrate_names = Dir.children(File.join(dummy, "db/migrate"))
+    readme = File.read(File.expand_path("../README.md", __dir__))
+    guide = File.read(File.expand_path("../docs/LIBRARY.md", __dir__))
+
+    assert_includes api_config, "shared: {}"
+    assert File.exist?(owner_migration)
+    %w[
+      20261116230000_add_recording_studio_recordings_root_type_creation_index
+      20261117120000_enforce_recording_studio_recording_root_invariant
+      20261117200000_replace_recording_studio_recordings_root_index
+    ].each do |migration|
+      refute migrate_names.any? { |name| name.include?(migration) }, "#{migration} belongs on the host, not the dummy"
+      assert_includes readme, migration
+      assert_includes guide, migration
+    end
+    assert_includes readme, "Hosts MUST run the Recording Studio migrations from 7.4, 7.5, and 7.7"
+    assert_includes guide, "Hosts MUST run the Recording Studio 7.4, 7.5, and 7.7 migrations"
   end
 
   def test_readme_and_changelog_use_the_gem_version

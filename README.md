@@ -2,7 +2,7 @@
 
 A Recording Studio addon that owns a collection of things, and ordered pointers to them elsewhere. Items stay their own types. Libraries are keyed and host-mounted. Placements only store what is pointed at and in what order.
 
-Version **0.5.0**. Recording Studio dummy GitHub tag `v6.5.0`, Accessible `v0.24.2`, Orderable `v0.4.9`, Trashable `v0.12.3`, Metrics `v0.7.3`, Cache `v0.6.3`, Root Switchable `v0.11.7`, Flatpack `v0.1.341`, API `v0.21.3`.
+Version **0.6.0**. Recording Studio dummy GitHub tag `v7.7.1`, Accessible `v0.54.1`, Orderable `v0.11.0`, Trashable `v1.2.1`, Metrics `v0.9.2`, Cache `v0.7.1`, Root Switchable `v0.16.0`, Flatpack `v0.1.378`, API `v1.16.0`, Admin `v2.19.0`, Logs `v0.8.1`, Moveable `v6.0.2`, Icons `v0.4.2`. The gemspec requires `recording_studio` `~> 7.7`.
 
 ## What it does
 
@@ -43,12 +43,12 @@ bin/dev
 
 ```ruby
 # Gemfile
-gem "recording_studio_library", github: "bowerbird-app/RecordingStudio_library", tag: "v0.5.0"
-gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v6.5.0"
-gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.24.2"
-gem "recording_studio_orderable", github: "bowerbird-app/RecordingStudio_orderable", tag: "v0.4.9"
-gem "recording_studio_trashable", github: "bowerbird-app/RecordingStudio_trashable", tag: "v0.12.3"
-gem "flat_pack", github: "bowerbird-app/flatpack", tag: "v0.1.341"
+gem "recording_studio_library", github: "bowerbird-app/RecordingStudio_library", tag: "v0.6.0"
+gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v7.7.1"
+gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.54.1"
+gem "recording_studio_orderable", github: "bowerbird-app/RecordingStudio_orderable", tag: "v0.11.0"
+gem "recording_studio_trashable", github: "bowerbird-app/RecordingStudio_trashable", tag: "v1.2.1"
+gem "flat_pack", github: "bowerbird-app/flatpack", tag: "v0.1.378"
 ```
 
 ```bash
@@ -57,6 +57,12 @@ bin/rails generate recording_studio_library:migrations
 bin/rails db:migrate
 bin/rails tailwindcss:build
 ```
+
+Hosts MUST run the Recording Studio migrations from 7.4, 7.5, and 7.7 before booting this gem on 7.7. Those are `20261116230000_add_recording_studio_recordings_root_type_creation_index`, `20261117120000_enforce_recording_studio_recording_root_invariant`, and `20261117200000_replace_recording_studio_recordings_root_index`. Copy them from the Recording Studio engine (`bin/rails recording_studio:install:migrations`). This gem's dummy app does not carry those three migrations. A host that has not applied Recording Studio 6.9's `20261114090000_add_root_recording_id_to_recording_studio_events` MUST run that one too. Trashable `purge_at` on `recording_studio_recordings` is also required.
+
+`RecordingStudio.root_recording_for` only finds a root. Create one with `RecordingStudio.create_root_recording!(recordable, actor:)` and allow creating that root recordable when `root_recording` is nil. Do not list `RecordingStudioApi::AdminApi` in `recordable_types` unless an admin root type is configured. Hosts that mount Admin MUST set Accessible `config.admin_root_resolver`.
+
+The API install template has included `config/recording_studio_api.yml` since API `0.1.1`. API `1.12.0` raises at boot when that file is missing or invalid. The API client owner migration `20261117000024_add_owner_to_recording_studio_api_api_clients` arrived in API `1.4.0`. The steps for `0.5.x` to `0.6.0` are in [UPGRADING.md](UPGRADING.md#05x-to-060).
 
 Then opt a parent into `Library.to` and a holder into `Placeable.to`, and register an adapter per item type. Pin `@hotwired/turbo-rails` in the host importmap so the placements picker can load inside a navigable modal. Staff screens belong in Recording Studio Admin, not in this gem.
 

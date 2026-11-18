@@ -13,6 +13,9 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
   test "dummy app validates recordable declarations" do
     assert RecordingStudio.validate_recordable_declarations!
     assert_equal [ "Workspace" ], RecordingStudio.root_recordable_types
+    refute_includes RecordingStudio.configuration.recordable_types.map(&:to_s), "RecordingStudioApi::AdminApi"
+    assert_respond_to RecordingStudioAccessible.configuration.admin_root_resolver, :call
+    assert_nil RecordingStudioAccessible.configuration.admin_root_resolver.call(context: nil)
     assert_includes RecordingStudio.allowed_parent_types_for("Page"), "Workspace"
     assert_includes RecordingStudio.allowed_parent_types_for("Page"), "RecordingStudioLibrary::Library"
   end
@@ -21,6 +24,8 @@ class RecordingStudioTemplateTest < ActiveSupport::TestCase
     connection = ActiveRecord::Base.connection
 
     assert connection.column_exists?(:recording_studio_recordings, :root_recording_id)
+    assert connection.column_exists?(:recording_studio_recordings, :purge_at)
+    assert connection.column_exists?(:recording_studio_events, :root_recording_id)
     assert connection.table_exists?(:recording_studio_accesses)
     refute connection.table_exists?(:recording_studio_access_boundaries)
     refute connection.table_exists?(:recording_studio_device_sessions)

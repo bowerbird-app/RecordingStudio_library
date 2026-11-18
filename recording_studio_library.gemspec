@@ -19,13 +19,13 @@ Gem::Specification.new do |spec|
   spec.metadata["rubygems_mfa_required"] = "true"
 
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
-    Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"].reject do |path|
+    Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md", "UPGRADING.md"].reject do |path|
       path == ".cursor" || path.start_with?(".cursor/")
     end
   end
 
   spec.add_dependency "flat_pack", ">= 0.1.341"
   spec.add_dependency "rails", "~> 8.1.0"
-  spec.add_dependency "recording_studio", ">= 6.5.0"
+  spec.add_dependency "recording_studio", "~> 7.7"
   spec.add_dependency "recording_studio_accessible", ">= 0.24.2"
 end

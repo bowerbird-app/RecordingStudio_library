@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_12_000025) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_18_120001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -101,8 +101,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_000025) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "api_key", default: "public", null: false
+    t.string "owner_type"
+    t.uuid "owner_id"
     t.index ["access_recording_id"], name: "index_recording_studio_api_api_clients_on_access_recording_id", unique: true
     t.index ["api_key"], name: "index_recording_studio_api_api_clients_on_api_key"
+    t.index ["owner_type", "owner_id"], name: "index_rs_api_clients_on_owner"
   end
 
   create_table "recording_studio_api_api_credentials", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -216,11 +219,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_000025) do
     t.uuid "recordable_id", null: false
     t.string "recordable_type", null: false
     t.uuid "recording_id", null: false
+    t.uuid "root_recording_id", null: false
     t.index ["action", "occurred_at"], name: "index_rs_events_on_action_and_occurred_at"
     t.index ["actor_type", "actor_id", "occurred_at"], name: "index_rs_events_on_actor_and_occurred_at"
+    t.index ["impersonator_type", "impersonator_id", "occurred_at"], name: "index_rs_events_on_impersonator_and_occurred_at"
     t.index ["recording_id", "idempotency_key"], name: "index_recording_studio_events_on_recording_and_idempotency_key", unique: true, where: "(idempotency_key IS NOT NULL)"
     t.index ["recording_id", "occurred_at", "created_at"], name: "index_rs_events_on_recording_and_timeline", order: { occurred_at: :desc, created_at: :desc }
     t.index ["recording_id"], name: "index_recording_studio_events_on_recording_id"
+    t.index ["root_recording_id", "occurred_at", "created_at", "id"], name: "index_rs_events_on_root_and_timeline", order: { occurred_at: :desc, created_at: :desc, id: :desc }
   end
 
   create_table "recording_studio_libraries", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -275,8 +281,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_000025) do
     t.datetime "updated_at", null: false
     t.integer "recording_studio_orderable_position"
     t.boolean "trash_root", default: false, null: false
+    t.datetime "purge_at"
     t.index ["parent_recording_id", "recording_studio_orderable_position"], name: "idx_rs_recordings_orderable_sibling_position"
     t.index ["parent_recording_id"], name: "index_recording_studio_recordings_on_parent_recording_id"
+    t.index ["purge_at"], name: "idx_rs_recordings_due_purge_at", where: "(trashed_at IS NOT NULL)"
     t.index ["recordable_type", "recordable_id", "parent_recording_id", "trashed_at"], name: "index_recording_studio_recordings_on_recordable_parent_trashed"
     t.index ["recordable_type", "recordable_id"], name: "index_recording_studio_recordings_on_recordable"
     t.index ["recordable_type", "recordable_id"], name: "index_rs_unique_root_recording_per_recordable", unique: true, where: "(parent_recording_id IS NULL)"
@@ -342,6 +350,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_000025) do
   add_foreign_key "recording_studio_api_api_access_tokens", "recording_studio_api_api_credentials", column: "api_credential_id"
   add_foreign_key "recording_studio_api_api_credentials", "recording_studio_api_api_clients", column: "api_client_id"
   add_foreign_key "recording_studio_events", "recording_studio_recordings", column: "recording_id"
+  add_foreign_key "recording_studio_events", "recording_studio_recordings", column: "root_recording_id"
   add_foreign_key "recording_studio_recordings", "recording_studio_recordings", column: "parent_recording_id"
   add_foreign_key "recording_studio_recordings", "recording_studio_recordings", column: "root_recording_id"
   add_foreign_key "recording_studio_trashable_retention_settings", "recording_studio_recordings", column: "recording_id"
