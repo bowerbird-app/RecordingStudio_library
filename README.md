@@ -62,6 +62,8 @@ Hosts MUST run the Recording Studio migrations from 7.4, 7.5, and 7.7 before boo
 
 `RecordingStudio.root_recording_for` only finds a root. Create one with `RecordingStudio.create_root_recording!(recordable, actor:)` and allow creating that root recordable when `root_recording` is nil. Do not list `RecordingStudioApi::AdminApi` in `recordable_types` unless an admin root type is configured. Hosts that mount Admin MUST set Accessible `config.admin_root_resolver`.
 
+The API install template has included `config/recording_studio_api.yml` since API `0.1.1`. API `1.12.0` raises at boot when that file is missing or invalid. The API client owner migration `20261117000024_add_owner_to_recording_studio_api_api_clients` arrived in API `1.4.0`. The steps for `0.5.x` to `0.6.0` are in [UPGRADING.md](UPGRADING.md#05x-to-060).
+
 Then opt a parent into `Library.to` and a holder into `Placeable.to`, and register an adapter per item type. Pin `@hotwired/turbo-rails` in the host importmap so the placements picker can load inside a navigable modal. Staff screens belong in Recording Studio Admin, not in this gem.
 
 If the host mounts Recording Studio API, this gem registers capability actions (`library_place`, `library_place_new`, `library_reorder_placements`, `library_remove_placement`, `library_open_library`, `library_find_library`, `library_libraries_for`, `library_resolve_placements`). Enable those names on the parent and holder type APIs. Do not expose generic Library or Placement create/update.

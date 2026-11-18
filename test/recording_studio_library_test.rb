@@ -26,6 +26,7 @@ class RecordingStudioLibraryTest < Minitest::Test
     cursor_files = spec.files.select { |path| path == ".cursor" || path.split("/").include?(".cursor") }
 
     assert_empty cursor_files, "gemspec must not package .cursor/ (got #{cursor_files.inspect})"
+    assert_includes spec.files, "UPGRADING.md"
   end
 
   def test_root_and_dummy_gemfiles_pin_github_tags
