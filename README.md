@@ -60,7 +60,7 @@ bin/rails tailwindcss:build
 
 Hosts MUST run the Recording Studio migrations from 7.4, 7.5, and 7.7 before booting this gem on 7.7. Those are `20261116230000_add_recording_studio_recordings_root_type_creation_index`, `20261117120000_enforce_recording_studio_recording_root_invariant`, and `20261117200000_replace_recording_studio_recordings_root_index`. Copy them from the Recording Studio engine (`bin/rails recording_studio:install:migrations`). This gem's dummy app does not carry those three migrations. A host that has not applied Recording Studio 6.9's `20261114090000_add_root_recording_id_to_recording_studio_events` MUST run that one too. Trashable `purge_at` on `recording_studio_recordings` is also required.
 
-`RecordingStudio.root_recording_for` only finds a root. Create one with `RecordingStudio.create_root_recording!(recordable, actor:)` and allow that write when `root_recording` is nil. Do not list `RecordingStudioApi::AdminApi` in `recordable_types` unless an admin root type is configured. Hosts that mount Admin MUST set Accessible `config.admin_root_resolver`.
+`RecordingStudio.root_recording_for` only finds a root. Create one with `RecordingStudio.create_root_recording!(recordable, actor:)` and allow creating that root recordable when `root_recording` is nil. Do not list `RecordingStudioApi::AdminApi` in `recordable_types` unless an admin root type is configured. Hosts that mount Admin MUST set Accessible `config.admin_root_resolver`.
 
 Then opt a parent into `Library.to` and a holder into `Placeable.to`, and register an adapter per item type. Pin `@hotwired/turbo-rails` in the host importmap so the placements picker can load inside a navigable modal. Staff screens belong in Recording Studio Admin, not in this gem.
 

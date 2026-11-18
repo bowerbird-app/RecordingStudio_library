@@ -27,7 +27,8 @@ RecordingStudio.configure do |config|
   # Access grant/bootstrap writes go through Accessible's AccessCreationContext
   # (same path as grant_access / bootstrap_owner_access!), not a logged-in check.
   # Recording Studio 7.0 calls this with root_recording nil when creating a root.
-  # A persisted actor may create that root. Later writes still need an Accessible role.
+  # A persisted actor may create a Workspace root. Other recordables stay denied.
+  # Later writes still need an Accessible role.
   config.authorize_write = lambda { |actor:, root_recording:, recordable:, **|
     next true if defined?(RecordingStudioApi::ApiClient) &&
                  (recordable.is_a?(RecordingStudioApi::ApiClient) ||
@@ -35,7 +36,7 @@ RecordingStudio.configure do |config|
                   (defined?(RecordingStudioApi::ApiAccessToken) && recordable.is_a?(RecordingStudioApi::ApiAccessToken))) &&
                  RecordingStudioAccessible::AccessCreationContext.allowed?
     next false unless (actor.is_a?(User) || (defined?(RecordingStudioApi::ApiClient) && actor.is_a?(RecordingStudioApi::ApiClient))) && actor.persisted?
-    next true if root_recording.nil?
+    next true if root_recording.nil? && recordable.is_a?(Workspace)
 
     if defined?(RecordingStudio::Access) && recordable.is_a?(RecordingStudio::Access)
       next true if RecordingStudioAccessible::AccessCreationContext.allowed?
