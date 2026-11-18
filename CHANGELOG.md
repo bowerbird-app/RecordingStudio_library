@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Require `recording_studio` `~> 7.7` (floor raised from `>= 6.5.0`). Root and dummy Gemfiles pin Recording Studio `v7.7.1`, Accessible `v0.54.1`, Admin `v2.19.0`, API `v1.16.0`, Trashable `v1.2.1`, Moveable `v6.0.2`, Orderable `v0.11.0`, Metrics `v0.9.2`, Logs `v0.8.1`, Icons `v0.4.2`, and FlatPack `v0.1.378`. Dummy also pins Cache `v0.7.1` and Root Switchable `v0.16.0`.
 - Dummy app adds `config/recording_studio_api.yml` (`shared: {}`) and API owner migration `20261117000024_add_owner_to_recording_studio_api_api_clients`. The dummy does not copy Recording Studio 7.4, 7.5, or 7.7 migrations.
+- Lockfiles pick up Puma `8.1.2` and, in the dummy, msgpack `1.8.7`, so `bin/bundler-audit` is clean.
 
 ### Upgrade notes
 - Pin `v0.6.0`. Compare [v0.5.0...v0.6.0](https://github.com/bowerbird-app/RecordingStudio_library/compare/v0.5.0...v0.6.0). The gemspec floor is now `recording_studio` `~> 7.7` (GitHub tag `v7.7.1`), not `>= 6.5.0`.
