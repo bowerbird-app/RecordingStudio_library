@@ -10,7 +10,7 @@ class LibraryGuardTest < ActiveSupport::TestCase
     end
     @workspace = Workspace.create!(name: "Guard #{SecureRandom.hex(4)}")
     Current.actor = @user
-    @root = RecordingStudio.root_recording_for(@workspace)
+    @root = RecordingStudio.create_root_recording!(@workspace, actor: @user)
     grant_admin!(@user, @root)
     @library = RecordingStudioLibrary.library_for(@root, actor: @user)
     @showcase = Showcase.create!(title: "Guard gallery")

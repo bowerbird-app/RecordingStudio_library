@@ -10,7 +10,7 @@ class LibraryFlowTest < ActionDispatch::IntegrationTest
     sign_in @user
     Current.actor = @user
     @workspace = Workspace.find_or_create_by!(name: "Studio Workspace")
-    @root = RecordingStudio.root_recording_for(@workspace)
+    @root = RecordingStudio.create_root_recording!(@workspace, actor: @user)
     grant_admin!(@user, @root)
     @library = RecordingStudioLibrary.library_for(@root, actor: @user)
     @showcase = Showcase.find_or_create_by!(title: "Homepage gallery")
@@ -60,7 +60,7 @@ class LibraryFlowTest < ActionDispatch::IntegrationTest
 
   test "place refuses a cross-root item" do
     other = Workspace.create!(name: "Other #{SecureRandom.hex(4)}")
-    other_root = RecordingStudio.root_recording_for(other)
+    other_root = RecordingStudio.create_root_recording!(other, actor: @user)
     grant_admin!(@user, other_root)
     other_library = RecordingStudioLibrary.library_for(other_root, actor: @user)
     foreign = RecordingStudio.record!(

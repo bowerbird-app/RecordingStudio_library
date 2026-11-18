@@ -14,7 +14,7 @@ class LibraryAccessTest < ActiveSupport::TestCase
     end
     @workspace = Workspace.create!(name: "Access #{SecureRandom.hex(4)}")
     Current.actor = @owner
-    @root = RecordingStudio.root_recording_for(@workspace)
+    @root = RecordingStudio.create_root_recording!(@workspace, actor: @owner)
     grant_admin!(@owner, @root)
     @library = RecordingStudioLibrary.library_for(@root, actor: @owner)
     @showcase = Showcase.create!(title: "Private gallery")
@@ -49,7 +49,7 @@ class LibraryAccessTest < ActiveSupport::TestCase
 
   test "a signed-in user with no grant cannot create a library via library_for" do
     empty = Workspace.create!(name: "No grant #{SecureRandom.hex(4)}")
-    empty_root = RecordingStudio.root_recording_for(empty)
+    empty_root = RecordingStudio.create_root_recording!(empty, actor: @owner)
     grant_admin!(@owner, empty_root)
 
     assert_nil RecordingStudioLibrary.find_library(empty_root)

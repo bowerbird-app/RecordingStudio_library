@@ -29,7 +29,7 @@ class RecordingStudioDeclarationsTest < ActiveSupport::TestCase
   test "root recordable creates a root recording" do
     workspace = Workspace.create!(name: unique_name("Root Workspace"))
 
-    root_recording = RecordingStudio.root_recording_for(workspace)
+    root_recording = RecordingStudio.create_root_recording!(workspace, actor: @user)
 
     assert_predicate root_recording, :persisted?
     assert_equal workspace, root_recording.recordable
@@ -77,7 +77,10 @@ class RecordingStudioDeclarationsTest < ActiveSupport::TestCase
   end
 
   test "parentless child under an existing root is invalid" do
-    root_recording = RecordingStudio.root_recording_for(Workspace.create!(name: unique_name("Parentless Workspace")))
+    root_recording = RecordingStudio.create_root_recording!(
+      Workspace.create!(name: unique_name("Parentless Workspace")),
+      actor: @user
+    )
     folder = Folder.create!(name: unique_name("Parentless Folder"))
     recording = RecordingStudio::Recording.new(root_recording: root_recording, recordable: folder)
 
@@ -110,7 +113,7 @@ class RecordingStudioDeclarationsTest < ActiveSupport::TestCase
   private
 
   def owned_root(workspace_name)
-    root_recording = RecordingStudio.root_recording_for(Workspace.create!(name: workspace_name))
+    root_recording = RecordingStudio.create_root_recording!(Workspace.create!(name: workspace_name), actor: @user)
     result = RecordingStudioAccessible.bootstrap_owner_access!(recording: root_recording, actor: @user)
     raise result.error if result.respond_to?(:failure?) && result.failure?
 

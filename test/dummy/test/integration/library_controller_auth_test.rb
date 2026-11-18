@@ -20,7 +20,7 @@ class LibraryControllerAuthTest < ActionDispatch::IntegrationTest
     end
     @workspace = Workspace.create!(name: "Auth #{SecureRandom.hex(4)}")
     Current.actor = @owner
-    @root = RecordingStudio.root_recording_for(@workspace)
+    @root = RecordingStudio.create_root_recording!(@workspace, actor: @owner)
     grant_admin!(@owner, @root)
     grant_role!(@viewer, @root, :view, manager: @owner)
     @library = RecordingStudioLibrary.library_for(@root, actor: @owner)
@@ -125,7 +125,7 @@ class LibraryControllerAuthTest < ActionDispatch::IntegrationTest
     sign_in @owner
     Current.actor = @owner
     empty = Workspace.create!(name: "Empty #{SecureRandom.hex(4)}")
-    empty_root = RecordingStudio.root_recording_for(empty)
+    empty_root = RecordingStudio.create_root_recording!(empty, actor: @owner)
     grant_admin!(@owner, empty_root)
 
     assert_no_difference -> { RecordingStudioLibrary::Library.count } do

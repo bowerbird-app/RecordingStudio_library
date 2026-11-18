@@ -102,7 +102,7 @@ Staff admin UI belongs in Recording Studio Admin, not here.
 ## Install
 
 1. Add the gem and pin Recording Studio `~> 7.7` (tag `v7.7.1`), Accessible, Orderable, Trashable, and Flatpack from GitHub tags (see the README). Leave `config.layout` nil unless the host needs a different shell.
-2. Hosts MUST run the Recording Studio 7.4, 7.5, and 7.7 migrations: `20261116230000_add_recording_studio_recordings_root_type_creation_index`, `20261117120000_enforce_recording_studio_recording_root_invariant`, and `20261117200000_replace_recording_studio_recordings_root_index`. Install them from the Recording Studio engine. The library dummy does not copy those files. Hosts that have not yet applied Recording Studio 6.9 MUST also run `20261114090000_add_root_recording_id_to_recording_studio_events`.
+2. Hosts MUST run the Recording Studio 7.4, 7.5, and 7.7 migrations: `20261116230000_add_recording_studio_recordings_root_type_creation_index`, `20261117120000_enforce_recording_studio_recording_root_invariant`, and `20261117200000_replace_recording_studio_recordings_root_index`. Install them from the Recording Studio engine. The library dummy does not copy those files. Hosts that have not yet applied Recording Studio 6.9 MUST also run `20261114090000_add_root_recording_id_to_recording_studio_events`. Hosts MUST also have Trashable `purge_at` on `recording_studio_recordings`. `root_recording_for` only finds a root; create one with `create_root_recording!`. Remove `RecordingStudioApi::AdminApi` from `recordable_types` unless an admin root type is configured, and set Accessible `admin_root_resolver` when Admin is mounted.
 3. `bin/rails generate recording_studio_library:install`
 4. `bin/rails generate recording_studio_library:migrations`
 5. `bin/rails db:migrate`
