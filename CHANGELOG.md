@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dummy app adds `config/recording_studio_api.yml` (`shared: {}`), API owner migration `20261117000024_add_owner_to_recording_studio_api_api_clients`, Trashable `purge_at` (`20261118120000`), and Recording Studio events `root_recording_id` (`20261118120001`). The dummy does not copy Recording Studio 7.4, 7.5, or 7.7 migrations.
 - Lockfiles pick up Puma `8.1.2` and, in the dummy, msgpack `1.8.7`, so `bin/bundler-audit` is clean.
 - Dummy seeds and tests create workspace roots with `RecordingStudio.create_root_recording!`. `root_recording_for` stays a lookup. `authorize_write` allows a persisted actor to create a Workspace when `root_recording` is nil. Other recordables stay denied. `RecordingStudioApi::AdminApi` is no longer listed in dummy `recordable_types`. Accessible `admin_root_resolver` is set and returns nil because the dummy does not mount admin screens.
+- The dummy `all_workspaces` scope keeps Root Switchable's default access check (Accessible `:view`), so the switcher current root is one the signed-in person can open.
 
 ### Upgrade notes
 - Pin `v0.6.0`. Compare [v0.5.0...v0.6.0](https://github.com/bowerbird-app/RecordingStudio_library/compare/v0.5.0...v0.6.0). The gemspec floor is now `recording_studio` `~> 7.7` (GitHub tag `v7.7.1`), not `>= 6.5.0`.

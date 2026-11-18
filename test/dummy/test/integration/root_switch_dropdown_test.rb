@@ -27,7 +27,8 @@ class RootSwitchDropdownTest < ActionDispatch::IntegrationTest
     sign_in user
 
     workspace = Workspace.create!(name: "Dropdown Workspace")
-    RecordingStudio.create_root_recording!(workspace, actor: user)
+    root = RecordingStudio.create_root_recording!(workspace, actor: user)
+    grant_admin!(user, root)
 
     get root_path
 
