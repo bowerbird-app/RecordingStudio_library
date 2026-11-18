@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-11-18
+
+### Changed
+- Require `recording_studio` `~> 7.7` (floor raised from `>= 6.5.0`). Root and dummy Gemfiles pin Recording Studio `v7.7.1`, Accessible `v0.54.1`, Admin `v2.19.0`, API `v1.16.0`, Trashable `v1.2.1`, Moveable `v6.0.2`, Orderable `v0.11.0`, Metrics `v0.9.2`, Logs `v0.8.1`, Icons `v0.4.2`, and FlatPack `v0.1.378`. Dummy also pins Cache `v0.7.1` and Root Switchable `v0.16.0`.
+- Dummy app adds `config/recording_studio_api.yml` (`shared: {}`) and API owner migration `20261117000024_add_owner_to_recording_studio_api_api_clients`. The dummy does not copy Recording Studio 7.4, 7.5, or 7.7 migrations.
+
+### Upgrade notes
+- Pin `v0.6.0`. Compare [v0.5.0...v0.6.0](https://github.com/bowerbird-app/RecordingStudio_library/compare/v0.5.0...v0.6.0). The gemspec floor is now `recording_studio` `~> 7.7` (GitHub tag `v7.7.1`), not `>= 6.5.0`.
+- Hosts MUST run the Recording Studio 7.4, 7.5, and 7.7 migrations before using this release: `20261116230000_add_recording_studio_recordings_root_type_creation_index`, `20261117120000_enforce_recording_studio_recording_root_invariant`, and `20261117200000_replace_recording_studio_recordings_root_index`. Install them from the Recording Studio engine. This gem's dummy does not ship them. Hosts that skipped Recording Studio 6.9 MUST also run `20261114090000_add_root_recording_id_to_recording_studio_events`.
+- Hosts on Recording Studio API 1.12 or later need `config/recording_studio_api.yml`. Apply `20261117000024_add_owner_to_recording_studio_api_api_clients` if `recording_studio_api_api_clients` has no `owner_type` / `owner_id`.
+- Library engine behavior is unchanged in this release. Recording Studio 7.0 makes `root_recording_for` find-only; create roots with `RecordingStudio.create_root_recording!`.
+
 ## [0.5.0] - 2026-11-12
 
 ### Added
@@ -105,6 +117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use `find_library` on read paths. `library_for` remains the find-or-create write path.
 - Attachable still owns its own Library/Placement until a later phase. Do not switch Presskits or Video onto this gem yet.
 
+[0.6.0]: https://github.com/bowerbird-app/RecordingStudio_library/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/bowerbird-app/RecordingStudio_library/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/bowerbird-app/RecordingStudio_library/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/bowerbird-app/RecordingStudio_library/compare/v0.2.1...v0.3.0

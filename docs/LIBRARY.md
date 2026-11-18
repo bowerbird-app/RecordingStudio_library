@@ -101,12 +101,13 @@ Staff admin UI belongs in Recording Studio Admin, not here.
 
 ## Install
 
-1. Add the gem and pin Recording Studio `>= 6.5.0`, Accessible `>= 0.24.2`, Orderable, Trashable, and Flatpack from GitHub tags (see the README). Leave `config.layout` nil unless the host needs a different shell.
-2. `bin/rails generate recording_studio_library:install`
-3. `bin/rails generate recording_studio_library:migrations`
-4. `bin/rails db:migrate`
-5. Opt a parent into `Library.to` and a holder into `Placeable.to`.
-6. Register adapters for each item type you place. This is required, not optional.
+1. Add the gem and pin Recording Studio `~> 7.7` (tag `v7.7.1`), Accessible, Orderable, Trashable, and Flatpack from GitHub tags (see the README). Leave `config.layout` nil unless the host needs a different shell.
+2. Hosts MUST run the Recording Studio 7.4, 7.5, and 7.7 migrations: `20261116230000_add_recording_studio_recordings_root_type_creation_index`, `20261117120000_enforce_recording_studio_recording_root_invariant`, and `20261117200000_replace_recording_studio_recordings_root_index`. Install them from the Recording Studio engine. The library dummy does not copy those files. Hosts that have not yet applied Recording Studio 6.9 MUST also run `20261114090000_add_root_recording_id_to_recording_studio_events`.
+3. `bin/rails generate recording_studio_library:install`
+4. `bin/rails generate recording_studio_library:migrations`
+5. `bin/rails db:migrate`
+6. Opt a parent into `Library.to` and a holder into `Placeable.to`.
+7. Register adapters for each item type you place. This is required, not optional.
 
 ## What this gem does not do
 
